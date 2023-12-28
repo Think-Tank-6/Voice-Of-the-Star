@@ -4,7 +4,7 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 from database.connection import get_db
 
-from database.orm import Star
+from database.orm import Star, User
 
 class StarRepository:
     def __init__(self, session: Session = Depends(get_db)):
@@ -31,3 +31,13 @@ class StarRepository:
     def delete_star(self, star_id: int) -> None:
         self.session.execute(delete(Star).where(Star.star_id == star_id)) 
         self.session.commit()
+
+class AuthRepository:
+    def __init__(self, session: Session = Depends(get_db)):
+        self.session = session
+
+    def save_user(self, user: User) -> User:
+        self.session.add(instance=user)
+        self.session.commit()
+        self.session.refresh(instance=user)
+        return user
