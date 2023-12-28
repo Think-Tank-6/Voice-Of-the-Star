@@ -25,3 +25,13 @@ class CreateStarRequest(BaseModel):
     image: Optional[str]
     audio_file: Optional[str]
     text_file: Optional[str]
+
+
+class JoinRequest(BaseModel):
+    user_id: str
+    password: str
+    name: str
+    phone: str
+    image: str
+    policy_aggrement_flag: bool
+
