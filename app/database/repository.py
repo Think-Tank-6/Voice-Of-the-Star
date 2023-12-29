@@ -36,6 +36,12 @@ class AuthRepository:
     def __init__(self, session: Session = Depends(get_db)):
         self.session = session
 
+    def get_user_by_user_id(self, user_id: str) -> User | None:
+        return self.session.scalar(
+            select(User).where(User.user_id == user_id)
+        )
+
+
     def save_user(self, user: User) -> User:
         self.session.add(instance=user)
         self.session.commit()
