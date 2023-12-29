@@ -35,3 +35,9 @@ class JoinRequest(BaseModel):
     image: str
     policy_aggrement_flag: bool
 
+
+class LoginRequest(BaseModel):
+    user_id: str
+    password: str
+    
+
