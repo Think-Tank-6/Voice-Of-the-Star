@@ -27,9 +27,17 @@ class AuthService:
     def create_jwt(self, user_id: str) -> str: 
         return jwt.encode(
             {
-                "sub": user_id,
+                "user_id": user_id,
                 "exp": datetime.now() + timedelta(days=1),  # 토큰의 만료시간 = 하루(요청한 시간부터)
             }, 
             self.SECRET_KEY, 
             algorithm=self.JWT_ALGORITHM
         )
+    
+    def decode_jwt(self, access_token: str) -> str:
+        payload: dict = jwt.decode(
+            access_token, 
+            self.SECRET_KEY, 
+            algorithms=[self.JWT_ALGORITHM]
+        )
+        return payload["user_id"]   # user_id 리턴
