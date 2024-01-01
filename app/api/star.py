@@ -1,8 +1,10 @@
 from typing import List
 from fastapi import Depends, HTTPException, APIRouter
+from service.auth import AuthService
+from security import get_access_token
 
-from database.orm import Star
-from database.repository import StarRepository
+from database.orm import Star, User
+from database.repository import AuthRepository, StarRepository
 from schema.request import CreateStarRequest
 from schema.response import StarListSchema, StarSchema
 
@@ -13,10 +15,19 @@ router = APIRouter(prefix="/stars")
 # 전체 star 조회
 @router.get("", status_code=200)
 def get_stars_handler(
+    access_token = Depends(get_access_token),
     order: str | None = None,
-    star_repo: StarRepository = Depends(StarRepository),  
+    auth_service: AuthService = Depends(),
+    auth_repo: AuthRepository = Depends(),
 ) -> StarListSchema:
-    stars: List[Star] = star_repo.get_stars()
+    
+    user_id: str = auth_service.decode_jwt(access_token=access_token)
+
+    user: User | None = auth_repo.get_user_by_user_id(user_id=user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User Not Found")
+    
+    stars: List[Star] = user.stars
 
     if order and order == "DESC":
         return StarListSchema(
