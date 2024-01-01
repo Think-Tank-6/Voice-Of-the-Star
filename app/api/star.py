@@ -12,20 +12,21 @@ from schema.response import StarListSchema, StarSchema
 router = APIRouter(prefix="/stars")
 
 
+# 유저 검증 및 조회(공통)
+def get_authenticated_user(
+    access_token: str = Depends(get_access_token),
+    auth_service: AuthService = Depends(),
+    auth_repo: AuthRepository = Depends(),
+) -> User:
+    return auth_service.verify_user(access_token=access_token, auth_repo=auth_repo)
+
+
 # 전체 star 조회
 @router.get("", status_code=200)
 def get_stars_handler(
-    access_token = Depends(get_access_token),
     order: str | None = None,
-    auth_service: AuthService = Depends(),
-    auth_repo: AuthRepository = Depends(),
+    user: User = Depends(get_authenticated_user),   # 유저 검증 dependency
 ) -> StarListSchema:
-    
-    user_id: str = auth_service.decode_jwt(access_token=access_token)
-
-    user: User | None = auth_repo.get_user_by_user_id(user_id=user_id)
-    if not user:
-        raise HTTPException(status_code=404, detail="User Not Found")
     
     stars: List[Star] = user.stars
 
@@ -42,9 +43,12 @@ def get_stars_handler(
 @router.get("/{star_id}", status_code=200)
 def get_star_handler(
     star_id: int,
-    star_repo: StarRepository = Depends(StarRepository),
+    user: User = Depends(get_authenticated_user),   # 유저 검증 dependency
+    star_repo: StarRepository = Depends(),
 ) -> StarSchema:
-    star: Star | None = star_repo.get_star_by_star_id(star_id=star_id)
+    
+    star: Star | None = star_repo.get_star_by_star_id(star_id=star_id, user_id=user.user_id)
+
     if star:
         return StarSchema.from_orm(star)
     raise HTTPException(status_code=404, detail="Star Not Found")
@@ -54,11 +58,13 @@ def get_star_handler(
 @router.post("", status_code=201)
 def create_star_handler(
     request: CreateStarRequest,
+    user: User = Depends(get_authenticated_user),   # 유저 검증 dependency
     star_repo: StarRepository = Depends(StarRepository),
 ) -> StarSchema:
-    star: Star = Star.create(request=request)  
+    
+    star: Star = Star.create(request=request, user_id=user.user_id)  
     star: Star = star_repo.create_star(star=star)  
-    return StarSchema.from_orm(star)    
+    return StarSchema.from_orm(star)
 
 
 # star 수정
@@ -66,9 +72,12 @@ def create_star_handler(
 def update_star_handler(
     star_id: int, 
     request: CreateStarRequest,
+    user: User = Depends(get_authenticated_user),   # 유저 검증 dependency
     star_repo: StarRepository = Depends(StarRepository),
 ) -> StarSchema:
-    star: Star | None = star_repo.get_star_by_star_id(star_id=star_id)
+    
+    star: Star | None = star_repo.get_star_by_star_id(star_id=star_id, user_id=user.user_id)
+
     if star:
         star: Star = star.update(request=request)
         star: Star = star_repo.update_star(star=star)
@@ -80,9 +89,12 @@ def update_star_handler(
 @router.delete("/{star_id}", status_code=204)
 def delete_star_handler(
     star_id: int,
+    user: User = Depends(get_authenticated_user),   # 유저 검증 dependency
     star_repo: StarRepository = Depends(StarRepository),
 ):
-    star: Star | None = star_repo.get_star_by_star_id(star_id=star_id)
+    
+    star: Star | None = star_repo.get_star_by_star_id(star_id=star_id, user_id=user.user_id)
+    
     if not star:
         raise HTTPException(status_code=404, detail="Star Not Found")
     star_repo.delete_star(star_id=star_id)

@@ -22,7 +22,7 @@ class Star(Base):
 
 
     @classmethod
-    def create(cls, request: CreateStarRequest) -> "Star":
+    def create(cls, request: CreateStarRequest, user_id: str) -> "Star":
         return cls(
             star_name=request.star_name,
             gender=request.gender,
@@ -32,7 +32,8 @@ class Star(Base):
             persona=request.persona,
             image=request.image,
             audio_file=request.audio_file,
-            text_file=request.text_file
+            text_file=request.text_file,
+            user_id=user_id
         )
     
     def update(self, request: CreateStarRequest) -> "Star":
