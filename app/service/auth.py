@@ -1,8 +1,13 @@
 import bcrypt
 from datetime import datetime, timedelta
+from fastapi import Depends, HTTPException
 from jose import jwt
 from dotenv import load_dotenv
 import os
+from database.orm import User
+from database.repository import AuthRepository
+
+from security import get_access_token
 
 load_dotenv()
 
@@ -41,3 +46,22 @@ class AuthService:
             algorithms=[self.JWT_ALGORITHM]
         )
         return payload["user_id"]   # user_id 리턴
+    
+    def verify_user(
+            self, 
+            access_token: str = Depends(get_access_token),
+            auth_repo: AuthRepository = Depends(),
+        ) -> User:
+
+        # 유저 검증
+        user_id: str = self.decode_jwt(access_token=access_token)
+
+        # 유저 조회
+        user: User | None = auth_repo.get_user_by_user_id(user_id=user_id)
+        if not user:
+            raise HTTPException(status_code=404, detail="User Not Found")
+        
+        return user
+        
+    
+

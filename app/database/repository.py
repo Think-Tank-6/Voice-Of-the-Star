@@ -13,8 +13,11 @@ class StarRepository:
     def get_stars(self) -> List[Star]:  
         return list(self.session.scalars(select(Star)))  
 
-    def get_star_by_star_id(self, star_id: int) -> Star | None:
-        return self.session.scalar(select(Star).where(Star.star_id == star_id)) 
+    def get_star_by_star_id(self, star_id: int, user_id: str) -> Star | None:
+        found_star : Star = self.session.scalar(
+            select(Star).where(Star.star_id == star_id, Star.user_id == user_id)
+        ) 
+        return found_star
 
     def create_star(self, star: Star) -> Star:
         self.session.add(instance=star)  
@@ -40,7 +43,6 @@ class AuthRepository:
         return self.session.scalar(
             select(User).where(User.user_id == user_id)
         )
-
 
     def save_user(self, user: User) -> User:
         self.session.add(instance=user)
