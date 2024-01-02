@@ -1,20 +1,21 @@
 from fastapi import APIRouter, Depends, HTTPException
+from security import get_access_token
 from schema.response import JWTResponse, UserSchema
-from database.repository import AuthRepository
+from database.repository import UserRepository
 from database.orm import User
 from service.auth import AuthService
 
 from schema.request import JoinRequest, LoginRequest
 
 
-router = APIRouter(prefix="/auth")
+router = APIRouter(prefix="/users")
 
 
 @router.post("/join", status_code=201)
 def user_join_handler(
     request: JoinRequest,
     auth_service: AuthService = Depends(),
-    auth_repo: AuthRepository = Depends(),
+    auth_repo: UserRepository = Depends(),
 ):
     hashed_password: str = auth_service.hash_password(
         plain_password=request.password
@@ -35,7 +36,7 @@ def user_join_handler(
 def user_login_handler(
     request: LoginRequest,
     auth_service: AuthService = Depends(),
-    auth_repo: AuthRepository = Depends(),
+    auth_repo: UserRepository = Depends(),
 ):
     user: User | None = auth_repo.get_user_by_user_id(
         user_id=request.user_id

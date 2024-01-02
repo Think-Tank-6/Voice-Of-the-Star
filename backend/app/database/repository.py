@@ -35,7 +35,7 @@ class StarRepository:
         self.session.execute(delete(Star).where(Star.star_id == star_id)) 
         self.session.commit()
 
-class AuthRepository:
+class UserRepository:
     def __init__(self, session: Session = Depends(get_db)):
         self.session = session
 

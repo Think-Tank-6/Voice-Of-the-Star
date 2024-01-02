@@ -4,7 +4,7 @@ from service.auth import AuthService
 from security import get_access_token
 
 from database.orm import Star, User
-from database.repository import AuthRepository, StarRepository
+from database.repository import UserRepository, StarRepository
 from schema.request import CreateStarRequest
 from schema.response import StarListSchema, StarSchema
 
@@ -16,9 +16,9 @@ router = APIRouter(prefix="/stars")
 def get_authenticated_user(
     access_token: str = Depends(get_access_token),
     auth_service: AuthService = Depends(),
-    auth_repo: AuthRepository = Depends(),
+    user_repo: UserRepository = Depends(),
 ) -> User:
-    return auth_service.verify_user(access_token=access_token, auth_repo=auth_repo)
+    return auth_service.verify_user(access_token=access_token, user_repo=user_repo)
 
 
 # 전체 star 조회

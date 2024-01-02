@@ -5,7 +5,7 @@ from jose import jwt
 from dotenv import load_dotenv
 import os
 from database.orm import User
-from database.repository import AuthRepository
+from database.repository import UserRepository
 
 from security import get_access_token
 
@@ -50,14 +50,14 @@ class AuthService:
     def verify_user(
             self, 
             access_token: str = Depends(get_access_token),
-            auth_repo: AuthRepository = Depends(),
+            user_repo: UserRepository = Depends(),
         ) -> User:
 
         # 유저 검증
         user_id: str = self.decode_jwt(access_token=access_token)
 
         # 유저 조회
-        user: User | None = auth_repo.get_user_by_user_id(user_id=user_id)
+        user: User | None = user_repo.get_user_by_user_id(user_id=user_id)
         if not user:
             raise HTTPException(status_code=404, detail="User Not Found")
         
