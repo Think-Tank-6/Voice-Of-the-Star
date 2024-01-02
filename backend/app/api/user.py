@@ -15,7 +15,7 @@ router = APIRouter(prefix="/users")
 def user_join_handler(
     request: JoinRequest,
     auth_service: AuthService = Depends(),
-    auth_repo: UserRepository = Depends(),
+    user_repo: UserRepository = Depends(),
 ):
     hashed_password: str = auth_service.hash_password(
         plain_password=request.password
@@ -28,7 +28,7 @@ def user_join_handler(
         image=request.image,
         policy_aggrement_flag=request.policy_aggrement_flag
     )
-    user: User = auth_repo.save_user(user=user)
+    user: User = user_repo.save_user(user=user)
     return UserSchema.from_orm(user)
 
 
@@ -36,9 +36,9 @@ def user_join_handler(
 def user_login_handler(
     request: LoginRequest,
     auth_service: AuthService = Depends(),
-    auth_repo: UserRepository = Depends(),
+    user_repo: UserRepository = Depends(),
 ):
-    user: User | None = auth_repo.get_user_by_user_id(
+    user: User | None = user_repo.get_user_by_user_id(
         user_id=request.user_id
     )
     if not user:
