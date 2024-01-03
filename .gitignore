@@ -4,3 +4,7 @@ __pycache__/
 
 # audio files
 *.wav
+*.m4a
+
+# speaker-identification test files
+ai-models/speaker-identification/data
