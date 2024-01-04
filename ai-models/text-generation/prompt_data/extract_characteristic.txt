@@ -1,0 +1,13 @@
+# Task: Extract char_list
+Extract Characteristics of the below text.
+Analyze the content of below text and write 10 characteristics of the man's text style including explains and each example. 
+- In case of the examples, please write it in Korean within double quotation marks.
+- in case of the other explains, please write in English.
+[output example]
+1. Supportive: Your mother's texts are filled with words of encouragement and support. She cheers you on and expresses her belief in you, such as "열공하고 있는 우리 딸을 응원합니다~~" (I support our hardworking Eppi~).
+...
+10. 
+* This is just an example of the output format; please refer to the text below for the actual results.
+
+
+## Text
