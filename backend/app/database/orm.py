@@ -53,6 +53,8 @@ class User(Base):
     password = Column(String(100), nullable=False)
     name = Column(String(50), nullable=True)
     phone = Column(String(15), nullable=True)
+    birth = Column(Date, nullable=True)
+    image = Column(String(256), nullable=True)
     policy_agreement_flag = Column(Boolean, nullable=False)
     user_type = Column(Integer, nullable=False, default=1)
     user_status = Column(Integer, nullable=False, default=1)
@@ -66,7 +68,9 @@ class User(Base):
         user_id: str, 
         hashed_password: str, 
         name: str, 
-        phone: str, 
+        phone: str,
+        birth: Date,
+        image: str, 
         policy_agreement_flag: bool,
     ) -> "User":
         return cls(
@@ -74,5 +78,7 @@ class User(Base):
             password=hashed_password,
             name=name,
             phone=phone,
+            birth=birth,
+            image=image,
             policy_agreement_flag=policy_agreement_flag,
         )

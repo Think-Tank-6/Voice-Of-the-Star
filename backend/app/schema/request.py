@@ -21,6 +21,8 @@ class JoinRequest(BaseModel):
     password: str
     name: str
     phone: str
+    birth: Optional[date]
+    image: Optional[str]
     policy_agreement_flag: bool
 
 
