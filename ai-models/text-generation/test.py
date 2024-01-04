@@ -1,4 +1,3 @@
-import os
 from preprocessing import get_user_name, extract_messages
 
 if __name__ == '__main__':
