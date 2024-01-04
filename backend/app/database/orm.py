@@ -5,6 +5,7 @@ from schema.request import CreateStarRequest
 
 Base = declarative_base()
 
+# 별(고인)
 class Star(Base):
     __tablename__ = "star"
 
@@ -45,7 +46,7 @@ class Star(Base):
         self.original_text_file = request.original_text_file
         return self
     
-
+# 회원
 class User(Base): 
     __tablename__ = "user"
 
@@ -76,3 +77,19 @@ class User(Base):
             phone=phone,
             policy_agreement_flag=policy_agreement_flag,
         )
+
+# 채팅방
+class Room(Base):
+    __tablename__ = "room"
+
+    room_id = Column(Integer, primary_key=True, index=True)
+    room_name = Column(String(50), nullable=False)
+    star_id = Column(Integer, ForeignKey("star.star_id"), nullable=False)
+    user_id = Column(String(50), ForeignKey("user.user_id"), nullable=False)
+    text_data = Column(String(255))
+    image_data = Column(String(255))
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+ 
+    user = relationship("User")
+    star = relationship("Star")
+    
