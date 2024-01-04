@@ -25,8 +25,7 @@ def user_join_handler(
         hashed_password=hashed_password,
         name=request.name,
         phone=request.phone,
-        image=request.image,
-        policy_aggrement_flag=request.policy_aggrement_flag
+        policy_agreement_flag=request.policy_agreement_flag
     )
     user: User = user_repo.save_user(user=user)
     return UserSchema.from_orm(user)
