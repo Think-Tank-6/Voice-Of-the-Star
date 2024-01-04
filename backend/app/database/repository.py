@@ -66,14 +66,14 @@ class RoomRepository:
         self.session.refresh(instance=room)
         return room
     
-def save_message(chat_id, room_id, user_id, star_id, message_text):
+def save_message(room_id, user_id, star_id, message_text):
     messages_collection = get_messages_collection()
     message = {
-        "chat_id": chat_id,
         "room_id": room_id,
         "user_id": user_id,
         "star_id": star_id,
         "message": message_text,
         "created_at": datetime.datetime.utcnow()
     }
-    messages_collection.insert_one(message)
+    result = messages_collection.insert_one(message)
+    return result.inserted_id 

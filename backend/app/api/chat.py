@@ -1,5 +1,6 @@
-from fastapi import APIRouter, WebSocket
-from database.connection import get_messages_collection 
+import datetime
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from database.repository import save_message
 import json
 import logging
 
@@ -10,33 +11,55 @@ logging.basicConfig(level=logging.DEBUG,
 
 router = APIRouter(prefix="/chat")
 
-# 연결된 클라이언트를 관리하기 위한 딕셔너리입니다.
-connected_clients = {}
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections = {}
 
-@router.websocket("/{client_id}")
-async def websocket_endpoint(websocket: WebSocket, client_id: str):
-    logger.debug(f"WebSocket connection opened for client: {client_id}")
-    await websocket.accept()
-    connected_clients[client_id] = websocket
-    # MongoDB의 메시지 컬렉션 가져오기
-    messages_collection = get_messages_collection()
+    async def connect(self, websocket: WebSocket, client_id: str):
+        await websocket.accept()
+        self.active_connections[client_id] = websocket
+
+    def disconnect(self, client_id: str):
+        del self.active_connections[client_id]
+
+    async def send_message(self, message: dict, client_id: str):
+        if client_id in self.active_connections:
+            await self.active_connections[client_id].send_text(json.dumps(message))
+
+manager = ConnectionManager()
+
+@router.websocket("/{client_id}/{room_id}")
+async def websocket_endpoint(websocket: WebSocket, client_id: str, room_id: int):
+    logger.debug(f"WebSocket connection opened for client: {client_id} in room: {room_id}")
+    await manager.connect(websocket, client_id)
     try:
         while True:
-            # 클라이언트로부터 메시지를 기다립니다.
             data = await websocket.receive_text()
-            message = json.loads(data)
-
-             # MongoDB에 메시지 저장
             try:
-                messages_collection.insert_one(message)
-            except Exception as e:
-                logger.error(f"Failed to insert message into MongoDB: {e}")
-            
-            # 모든 클라이언트에게 메시지를 전송합니다.
-            for client in connected_clients.values():
-                await client.send_text(json.dumps(message))
+                message_data = json.loads(data)
+                # 메시지 형식 검증: 필요한 키들이 있는지 확인
+                if not all(k in message_data for k in ("user_id", "star_id", "message")):
+                    logger.error("Invalid message format")
+                    continue
+
+                # repository 모듈의 save_message 함수를 사용하여 메시지를 MongoDB에 저장합니다.
+                save_message(
+                    room_id=room_id,
+                    user_id=message_data["user_id"],
+                    star_id=message_data["star_id"],
+                    message_text=message_data["message"]
+                )
+
+                # 메시지에 room_id와 created_at를 추가합니다.
+                message_data['room_id'] = room_id
+                message_data['created_at'] = datetime.datetime.utcnow().isoformat()
+
+                # 해당 클라이언트에게 메시지를 전송합니다.
+                await manager.send_message(message_data, client_id)
+            except json.JSONDecodeError:
+                logger.error("Error decoding message")
+    except WebSocketDisconnect:
+        logger.debug(f"WebSocket disconnected for client: {client_id}")
+        manager.disconnect(client_id)
     except Exception as e:
         logger.error(f"Error: {e}")
-    finally:
-        # 클라이언트 연결이 끊어지면 리스트에서 제거합니다.
-        del connected_clients[client_id]
