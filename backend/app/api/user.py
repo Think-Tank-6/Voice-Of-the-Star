@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException
-from security import get_access_token
 from schema.response import JWTResponse, UserSchema
 from database.repository import UserRepository
 from database.orm import User
@@ -25,6 +24,8 @@ def user_join_handler(
         hashed_password=hashed_password,
         name=request.name,
         phone=request.phone,
+        birth=request.birth,
+        image=request.image,
         policy_agreement_flag=request.policy_agreement_flag
     )
     user: User = user_repo.save_user(user=user)
@@ -52,3 +53,4 @@ def user_login_handler(
     
     access_token: str = auth_service.create_jwt(user_id=user.user_id)
     return JWTResponse(access_token=access_token)
+
