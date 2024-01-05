@@ -1,11 +1,17 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
+from security import get_access_token
 from schema.response import JWTResponse, UserSchema
 from database.repository import UserRepository
 from database.orm import User
 from service.auth import AuthService
-
 from schema.request import JoinRequest, LoginRequest
+from starlette.status import HTTP_400_BAD_REQUEST
+import requests
+from pydantic import BaseModel
 
+
+class KakaoLoginRequest(BaseModel):
+    access_token: str
 
 router = APIRouter(prefix="/users")
 
@@ -54,3 +60,39 @@ def user_login_handler(
     access_token: str = auth_service.create_jwt(user_id=user.user_id)
     return JWTResponse(access_token=access_token)
 
+@router.post("/kakao-login")
+def kakao_login_handler(
+    kakao_login_request: KakaoLoginRequest = Body(...),
+    auth_service: AuthService = Depends(),
+    auth_repo: UserRepository = Depends(),
+):
+    KAKAO_TOKEN_VALIDATION_URL = 'https://kapi.kakao.com/v2/user/me'
+    headers = {"Authorization": f"Bearer {kakao_login_request.access_token}"}
+    kakao_response = requests.get(KAKAO_TOKEN_VALIDATION_URL, headers=headers)
+    
+    if kakao_response.status_code != 200:
+        raise HTTPException(status_code=400, detail="Invalid kakao token")
+
+    kakao_user_info = kakao_response.json()
+    print("Kakao API Response:", kakao_user_info)
+
+    user_id = kakao_user_info.get("kakao_account", {}).get("email")
+    name = kakao_user_info.get("kakao_account", {}).get("name")
+    phone_number = kakao_user_info.get("kakao_account", {}).get("phone_number")
+
+    user: User | None = auth_repo.get_user_by_user_id(user_id=user_id)
+
+    if not user:
+        new_user = User.create(
+            user_id=user_id,
+            hashed_password=auth_service.hash_password(plain_password="default_password"),
+            name=name,
+            phone=phone_number,
+            policy_agreement_flag=True
+        )
+        saved_user: User = auth_repo.save_user(user=new_user)
+        access_token: str = auth_service.create_jwt(user_id=saved_user.user_id)
+        return JWTResponse(access_token=access_token)
+    else:
+        existing_access_token: str = auth_service.create_jwt(user_id=user.user_id)
+        return JWTResponse(access_token=existing_access_token)
