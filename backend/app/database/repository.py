@@ -2,9 +2,10 @@ from typing import List
 from fastapi import Depends
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
-from database.connection import get_db
+from database.connection import get_db, get_messages_collection
+import datetime
 
-from database.orm import Star, User
+from database.orm import Star, User, Room
 
 class StarRepository:
     def __init__(self, session: Session = Depends(get_db)):
@@ -49,3 +50,30 @@ class UserRepository:
         self.session.commit()
         self.session.refresh(instance=user)
         return user
+    
+class RoomRepository:
+    def __init__(self, session: Session = Depends(get_db)):
+        self.session = session
+
+    def get_room_by_id(self, room_id: int) -> Room | None:
+        return self.session.scalar(
+            select(Room).where(Room.room_id == room_id)
+        )
+
+    def create_room(self, room: Room) -> Room:
+        self.session.add(instance=room)
+        self.session.commit()
+        self.session.refresh(instance=room)
+        return room
+    
+def save_message(room_id, user_id, star_id, message_text):
+    messages_collection = get_messages_collection()
+    message = {
+        "room_id": room_id,
+        "user_id": user_id,
+        "star_id": star_id,
+        "message": message_text,
+        "created_at": datetime.datetime.utcnow()
+    }
+    result = messages_collection.insert_one(message)
+    return result.inserted_id 

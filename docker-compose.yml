@@ -13,5 +13,19 @@ services:
       - vos:/db
     container_name: vos-mysql
 
+  vos-mongodb:
+    image: mongo:latest
+    ports:
+      - '${MONGO_BINDING_PORT}:27017'
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: '${MONGO_INITDB_ROOT_USERNAME}'
+      MONGO_INITDB_ROOT_PASSWORD: '${MONGO_INITDB_ROOT_PASSWORD}'
+    volumes:
+      - vos-mongodb-data:/data/db
+    container_name: vos-mongodb
+
 volumes:
-  vos:
+  vos-mysql-data:
+    driver: local
+  vos-mongodb-data:
+    driver: local
