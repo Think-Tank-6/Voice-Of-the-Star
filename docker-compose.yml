@@ -10,7 +10,7 @@ services:
       MYSQL_USER: '${MYSQL_USER}'
       MYSQL_PASSWORD: '${MYSQL_PASSWORD}'
     volumes:
-      - vos:/db
+      - vos-mysql-data:/db
     container_name: vos-mysql
 
   vos-mongodb:
