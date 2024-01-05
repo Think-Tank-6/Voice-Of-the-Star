@@ -76,9 +76,18 @@ def kakao_login_handler(
     kakao_user_info = kakao_response.json()
     print("Kakao API Response:", kakao_user_info)
 
+    # 카카오 API 응답에서 정보 가져오기
     user_id = kakao_user_info.get("kakao_account", {}).get("email")
     name = kakao_user_info.get("kakao_account", {}).get("name")
     phone_number = kakao_user_info.get("kakao_account", {}).get("phone_number")
+    birthday = kakao_user_info.get("kakao_account", {}).get("birthday")  # 예: "1231"
+    birthyear = kakao_user_info.get("kakao_account", {}).get("birthyear")  # 예: "1990"
+    
+    if birthday and birthyear:
+        birth = f"{birthyear}-{birthday[:2]}-{birthday[2:]}"
+    else:
+        birth = None
+
 
     user: User | None = auth_repo.get_user_by_user_id(user_id=user_id)
 
@@ -88,6 +97,8 @@ def kakao_login_handler(
             hashed_password=auth_service.hash_password(plain_password="default_password"),
             name=name,
             phone=phone_number,
+            birth=birth,
+            image=None,
             policy_agreement_flag=True
         )
         saved_user: User = auth_repo.save_user(user=new_user)
