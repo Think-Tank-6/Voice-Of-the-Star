@@ -1,19 +1,8 @@
+from fastapi import Form, UploadFile
 from pydantic import BaseModel
-
 
 from datetime import date
 from typing import Optional
-
-
-class CreateStarRequest(BaseModel):
-    star_name: str
-    gender: str
-    birth: date
-    death_date: date
-    relationship: str
-    persona: Optional[str]
-    original_audio_file: Optional[str]
-    original_text_file: str
 
 
 class JoinRequest(BaseModel):
@@ -31,3 +20,11 @@ class LoginRequest(BaseModel):
     password: str
     
 
+class CreateStarRequest(BaseModel):
+    star_name: str
+    gender: str
+    birth: date
+    death_date: date
+    relationship: str
+    persona: Optional[str]
+    image: Optional[str]

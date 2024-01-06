@@ -1,5 +1,6 @@
-from typing import List
-from fastapi import Depends, HTTPException, APIRouter
+from datetime import date
+from typing import List, Optional
+from fastapi import Depends, File, Form, HTTPException, APIRouter, UploadFile
 from service.auth import AuthService
 from security import get_access_token
 
@@ -7,7 +8,7 @@ from database.orm import Star, User
 from database.repository import UserRepository, StarRepository
 from schema.request import CreateStarRequest
 from schema.response import StarListSchema, StarSchema
-from service.ai_serving import TextGeneration
+# from service.ai_serving import TextGeneration
 
 router = APIRouter(prefix="/stars")
 
@@ -56,19 +57,58 @@ def get_star_handler(
 
 # star 생성
 @router.post("", status_code=201)
-def create_star_handler(
-    request: CreateStarRequest,
+async def create_star_handler(
+    star_name: str = Form(...),
+    gender: str = Form(...),
+    birth: date = Form(...),
+    death_date: date = Form(...),
+    relationship: str = Form(...),
+    persona: Optional[str] = Form(...),
+    original_text_file: UploadFile = File(...),
     user: User = Depends(get_authenticated_user),   # 유저 검증 dependency
     star_repo: StarRepository = Depends(StarRepository),
 ) -> StarSchema:
     
+    request = {
+        "star_name": star_name,
+        "gender": gender,
+        "birth": birth,
+        "death_date": death_date,
+        "relationship": relationship,
+        "persona": persona,
+    }
 
-    text_generator = TextGeneration(request=request)
-    chat_prompt_input_data = text_generator.create_prompt_input()
+    # Text Generation
+    # text_generator = TextGeneration(request=request)
+    # chat_prompt_input_data = text_generator.create_prompt_input()
 
-    
-    star: Star = Star.create(request=request, user_id=user.user_id)  
-    star: Star = star_repo.create_star(star=star)  
+
+    # Speaker Identification
+
+
+    # DB Save
+    star: Star = Star.create(
+        request=request, 
+        user_id=user.user_id
+    )  
+    star: Star = star_repo.create_star(star=star)
+
+    return StarSchema.from_orm(star)
+
+
+# star - voice upload
+@router.post("/voice-upload", status_code=201)
+def upload_voice_handler(
+    request: CreateStarRequest,
+    user: User = Depends(get_authenticated_user),   # 유저 검증 dependency
+    star_repo: StarRepository = Depends(StarRepository),
+) -> StarSchema:
+
+    star: Star = Star.create(
+        request=request, 
+        user_id=user.user_id
+    )
+    star: Star = star_repo.create_star(star=star)
     return StarSchema.from_orm(star)
 
 

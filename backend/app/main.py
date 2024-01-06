@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api import star, user, chat  # 'api' 디렉토리에 있는 모듈을 임포트합니다.
+from api import star, user, chat 
 
 app = FastAPI()
 

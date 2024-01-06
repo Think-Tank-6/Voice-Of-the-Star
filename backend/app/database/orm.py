@@ -1,9 +1,10 @@
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Date, func
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, LargeBinary, String, Date, Text, func
 from sqlalchemy.orm import declarative_base, relationship
 
-from schema.request import CreateStarRequest
+from schema.request import CreateStarRequest, JoinRequest
 
 Base = declarative_base()
+
 
 # 별(고인)
 class Star(Base):
@@ -16,22 +17,22 @@ class Star(Base):
     death_date = Column(Date, nullable=True)
     relationship = Column(String(20), nullable=False)
     persona = Column(String(512), nullable=True)
-    original_audio_file = Column(String(256), nullable=True)
-    original_text_file = Column(String(256), nullable=True)
+    image = Column(String(512), nullable=True)
+    chat_prompt_input_data = Column(Text, nullable=True)
+    gpt_cond_latent_data = Column(LargeBinary, nullable=True)
+    speaker_embedding_data = Column(LargeBinary, nullable=True)
     user_id = Column(String(50), ForeignKey("user.user_id"))
 
 
     @classmethod
-    def create(cls, request: CreateStarRequest, user_id: str) -> "Star":
+    def create(cls, request: dict, user_id: str) -> "Star":
         return cls(
-            star_name=request.star_name,
-            gender=request.gender,
-            birth=request.birth,
-            death_date=request.death_date,
-            relationship=request.relationship,
-            persona=request.persona,
-            original_audio_file=request.original_audio_file,
-            original_text_file=request.original_text_file,
+            star_name=request["star_name"],
+            gender=request["gender"],
+            birth=request["birth"],
+            death_date=request["death_date"],
+            relationship=request["relationship"],
+            persona=request["persona"],
             user_id=user_id
         )
     
@@ -42,10 +43,10 @@ class Star(Base):
         self.death_date = request.death_date
         self.relationship = request.relationship
         self.persona = request.persona
-        self.original_audio_file = request.original_audio_file
-        self.original_text_file = request.original_text_file
+        self.image = request.image
         return self
     
+
 # 회원
 class User(Base): 
     __tablename__ = "user"
@@ -83,6 +84,7 @@ class User(Base):
             image=image,
             policy_agreement_flag=policy_agreement_flag,
         )
+
 
 # 채팅방
 class Room(Base):
