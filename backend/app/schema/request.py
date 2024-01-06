@@ -28,15 +28,3 @@ class CreateStarRequest(BaseModel):
     relationship: str
     persona: Optional[str]
     image: Optional[str]
-
-
-
-# class CreateStarRequest(BaseModel):
-#     star_name:str = Form(...)
-#     gender: str = Form(...)
-#     birth: date = Form(...)
-#     death_date: date = Form(...)
-#     relationship: str = Form(...)
-#     persona: Optional[str] = Form(...)
-#     image: Optional[str] = Form(...)
-#     text_file: Optional[UploadFile]

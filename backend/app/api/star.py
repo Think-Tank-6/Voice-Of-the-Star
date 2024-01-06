@@ -79,7 +79,9 @@ async def create_star_handler(
     }
 
     # Text Generation
-    
+    # text_generator = TextGeneration(request=request)
+    # chat_prompt_input_data = text_generator.create_prompt_input()
+
 
     # Speaker Identification
 

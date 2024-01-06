@@ -30,14 +30,9 @@
 #         self.prompt_file_path = 'prompt_data/extract_characteristic.txt'
 #         self.system_input_path = "prompt_data/system_input.txt"
 
-#     def create_prompt_input(self, original_text_file) -> str:
+#     def create_prompt_input(self) -> str:
 
 #         # 텍스트 파일 열기
-#         # text = original_text_file.read()
-#         # decoded_text = text.decode("utf-8")
-#         # print(decoded_text)
-#         # [~님과의 대화] ㅁㅇㄴㄻㄴㅇㄹㄴㅁ
-#         # [나] ㅁㅇㄴㄹㄴㅇㅁㄹ
 
 
 #         #카카오톡 텍스트 원본에서 고인의 텍스트만 잘라내기
