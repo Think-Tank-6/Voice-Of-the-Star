@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
-from security import get_access_token
 from schema.response import JWTResponse, UserSchema
 from database.repository import UserRepository
 from database.orm import User
@@ -59,6 +58,7 @@ def user_login_handler(
     
     access_token: str = auth_service.create_jwt(user_id=user.user_id)
     return JWTResponse(access_token=access_token)
+
 
 @router.post("/kakao-login")
 def kakao_login_handler(

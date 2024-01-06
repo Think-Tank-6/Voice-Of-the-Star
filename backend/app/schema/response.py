@@ -2,6 +2,7 @@ from datetime import date, datetime
 from typing import List, Optional
 from pydantic import BaseModel
 
+
 class StarSchema(BaseModel):
     star_id: int
     star_name: str
@@ -10,8 +11,8 @@ class StarSchema(BaseModel):
     death_date: date
     relationship: str
     persona: Optional[str]
-    original_audio_file: Optional[str]
-    original_text_file: str
+    image: Optional[str]
+    chat_prompt_input_data: Optional[str]
 
     # ORM 객체를 pydantic으로 변환하기 위한 옵션
     class Config:
