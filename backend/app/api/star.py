@@ -7,7 +7,7 @@ from database.orm import Star, User
 from database.repository import UserRepository, StarRepository
 from schema.request import CreateStarRequest
 from schema.response import StarListSchema, StarSchema
-
+from service.ai_serving import TextGeneration
 
 router = APIRouter(prefix="/stars")
 
@@ -61,6 +61,11 @@ def create_star_handler(
     user: User = Depends(get_authenticated_user),   # 유저 검증 dependency
     star_repo: StarRepository = Depends(StarRepository),
 ) -> StarSchema:
+    
+
+    text_generator = TextGeneration(request=request)
+    chat_prompt_input_data = text_generator.create_prompt_input()
+
     
     star: Star = Star.create(request=request, user_id=user.user_id)  
     star: Star = star_repo.create_star(star=star)  
