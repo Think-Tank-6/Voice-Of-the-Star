@@ -75,14 +75,24 @@ class RoomRepository:
         self.session.refresh(instance=room)
         return room
     
-def save_message(room_id, user_id, star_id, message_text):
-    messages_collection = get_messages_collection()
-    message = {
-        "room_id": room_id,
-        "user_id": user_id,
-        "star_id": star_id,
-        "message": message_text,
-        "created_at": datetime.datetime.utcnow()
-    }
-    result = messages_collection.insert_one(message)
-    return result.inserted_id 
+class ChatRepository:
+    def __init__(self):
+        self.messages_collection = get_messages_collection()
+
+    def save_message(self, room_id, user_id, star_id, message_text):
+        message = {
+            "room_id": room_id,
+            "user_id": user_id,
+            "star_id": star_id,
+            "message": message_text,
+            "created_at": datetime.datetime.utcnow()
+        }
+        result = self.messages_collection.insert_one(message)
+        return result.inserted_id
+
+    def get_last_message(self, star_id):
+        last_message = self.messages_collection.find_one(
+            {"star_id": star_id},
+            sort=[("created_at", -1)]
+        )
+        return last_message

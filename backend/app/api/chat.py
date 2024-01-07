@@ -1,6 +1,6 @@
 import datetime
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from database.repository import save_message
+from database.repository import ChatRepository
 import json
 import logging
 
@@ -28,6 +28,9 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+# Create an instance of ChatRepository
+chat_repo = ChatRepository()
+
 @router.websocket("/{client_id}/{room_id}")
 async def websocket_endpoint(websocket: WebSocket, client_id: str, room_id: int):
     logger.debug(f"WebSocket connection opened for client: {client_id} in room: {room_id}")
@@ -43,7 +46,7 @@ async def websocket_endpoint(websocket: WebSocket, client_id: str, room_id: int)
                     continue
 
                 # repository 모듈의 save_message 함수를 사용하여 메시지를 MongoDB에 저장합니다.
-                save_message(
+                chat_repo.save_message(
                     room_id=room_id,
                     user_id=message_data["user_id"],
                     star_id=message_data["star_id"],
