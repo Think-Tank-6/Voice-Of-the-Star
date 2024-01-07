@@ -37,13 +37,6 @@ def user_join_handler(
     return UserSchema.from_orm(user)
 
 
-# @router.post("/join", status_code=201)
-
-# def user_join_handler():
-
-#     return {"messges":"join페이지"}
-
-
 @router.post("/login")
 def user_login_handler(
     request: LoginRequest,
