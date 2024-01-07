@@ -3,9 +3,9 @@
 # from openai import OpenAI
 # import os
 
-# from schema.request import CreateStarRequest
-# from ai_models.text_generation.characteristic_generation import merge_prompt_text, get_characteristics
-# from ai_models.text_generation.chat_generation import insert_persona_to_prompt, merge_prompt_input, prepare_chat
+from schema.request import CreateStarRequest
+from ai_models.text_generation.characteristic_generation import merge_prompt_text,get_characteristics 
+from ai_models.text_generation.chat_generation import insert_persona_to_prompt, merge_prompt_input, prepare_chat
 
 # ### Load GPT ###
 # load_dotenv()
