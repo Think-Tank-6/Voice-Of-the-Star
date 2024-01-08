@@ -3,7 +3,7 @@ from schema.response import JWTResponse, UserSchema
 from database.repository import UserRepository
 from database.orm import User
 from service.auth import AuthService
-from schema.request import JoinRequest, LoginRequest
+from schema.request import EmailCheckRequest, JoinRequest, LoginRequest
 from starlette.status import HTTP_400_BAD_REQUEST
 import requests
 from pydantic import BaseModel
@@ -39,10 +39,10 @@ def user_join_handler(
 
 @router.post("/join/email-check", status_code=200)
 def email_check_handler(
-    input_email: str = Form(...),
+    request: EmailCheckRequest,
     user_repo: UserRepository = Depends(),
 ):
-    user: User = user_repo.get_user_by_user_id(user_id=input_email)
+    user: User = user_repo.get_user_by_user_id(user_id=request.input_email)
     
     if user:
         return {
