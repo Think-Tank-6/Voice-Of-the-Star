@@ -15,6 +15,10 @@ class JoinRequest(BaseModel):
     policy_agreement_flag: bool
 
 
+class EmailCheckRequest(BaseModel):
+    input_email: str
+
+
 class LoginRequest(BaseModel):
     user_id: str
     password: str
@@ -32,5 +36,7 @@ class CreateStarRequest(BaseModel):
 
 class UpdateStarRequest(BaseModel):
     nickname: Optional[str]
+
+
     
     
