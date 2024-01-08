@@ -76,8 +76,8 @@ class RoomRepository:
         return room
     
 class ChatRepository:
-    def __init__(self):
-        self.messages_collection = get_messages_collection()
+    def __init__(self, messages_collection = Depends(get_messages_collection)):
+        self.messages_collection = messages_collection
 
     def save_message(self, room_id, user_id, star_id, message_text):
         message = {

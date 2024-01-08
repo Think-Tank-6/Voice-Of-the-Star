@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from pymongo import MongoClient, DESCENDING
+from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
 

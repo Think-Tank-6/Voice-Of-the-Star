@@ -5,7 +5,7 @@ from service.auth import AuthService
 from security import get_access_token
 
 from database.orm import Star, User
-from database.repository import UserRepository, StarRepository
+from database.repository import UserRepository, StarRepository, ChatRepository
 from schema.request import CreateStarRequest
 from schema.response import StarListSchema, StarSchema
 from service.ai_serving import TextGeneration
@@ -39,6 +39,13 @@ def get_stars_handler(
         stars=[StarSchema.from_orm(star) for star in stars] 
     )
 
+@router.get("/{star_id}/last", status_code=200)
+def get_last_message(
+    star_id: str, 
+    chat_repo: ChatRepository = Depends()
+):
+    last_message = chat_repo.get_last_message(star_id)
+    return last_message
 
 # 단일 star 조회
 @router.get("/{star_id}", status_code=200)
