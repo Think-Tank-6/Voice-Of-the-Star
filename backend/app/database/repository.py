@@ -51,6 +51,15 @@ class UserRepository:
         self.session.refresh(instance=user)
         return user
     
+    def get_all_users(self):
+        return self.session.query(User).all()
+    
+    def get_users_paginated(self, page: int, page_size: int):
+        users = self.session.query(User).order_by(User.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+        total = self.session.query(User).count()
+        return users, total
+
+    
 class RoomRepository:
     def __init__(self, session: Session = Depends(get_db)):
         self.session = session
