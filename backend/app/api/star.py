@@ -8,7 +8,7 @@ from database.orm import Star, User
 from database.repository import UserRepository, StarRepository
 from schema.request import CreateStarRequest
 from schema.response import StarListSchema, StarSchema
-# from service.ai_serving import TextGeneration
+from service.ai_serving import TextGeneration
 
 router = APIRouter(prefix="/stars")
 
@@ -79,8 +79,8 @@ async def create_star_handler(
     }
 
     # Text Generation
-    # text_generator = TextGeneration(request=request)
-    # chat_prompt_input_data = text_generator.create_prompt_input()
+    text_generator = TextGeneration(request=request)
+    chat_prompt_input_data = text_generator.create_prompt_input()
 
     chat_prompt_input_data = "test"
 
