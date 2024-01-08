@@ -82,13 +82,12 @@ async def create_star_handler(
     # text_generator = TextGeneration(request=request)
     # chat_prompt_input_data = text_generator.create_prompt_input()
 
-
-    # Speaker Identification
-
+    chat_prompt_input_data = "test"
 
     # DB Save
     star: Star = Star.create(
         request=request, 
+        chat_prompt_input_data=chat_prompt_input_data,
         user_id=user.user_id
     )  
     star: Star = star_repo.create_star(star=star)
@@ -96,20 +95,20 @@ async def create_star_handler(
     return StarSchema.from_orm(star)
 
 
-# star - voice upload
-@router.post("/voice-upload", status_code=201)
+# star 생성(보이스 업로드)
+@router.post("/voice-upload", status_code=200)
 def upload_voice_handler(
-    request: CreateStarRequest,
-    user: User = Depends(get_authenticated_user),   # 유저 검증 dependency
-    star_repo: StarRepository = Depends(StarRepository),
+    user: User = Depends(get_authenticated_user),  
 ) -> StarSchema:
+    return {"message":"voice upload 페이지"}
 
-    star: Star = Star.create(
-        request=request, 
-        user_id=user.user_id
-    )
-    star: Star = star_repo.create_star(star=star)
-    return StarSchema.from_orm(star)
+
+# star 생성(보이스 선택)
+@router.post("/voice-select", status_code=201)
+def upload_voice_handler(
+    user: User = Depends(get_authenticated_user),  
+) -> StarSchema:
+    return {"message":"voice select 페이지"}
 
 
 # star 수정

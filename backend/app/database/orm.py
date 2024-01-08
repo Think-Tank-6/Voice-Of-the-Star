@@ -25,7 +25,7 @@ class Star(Base):
 
 
     @classmethod
-    def create(cls, request: dict, user_id: str) -> "Star":
+    def create(cls, request: dict, chat_prompt_input_data: str, user_id: str) -> "Star":
         return cls(
             star_name=request["star_name"],
             gender=request["gender"],
@@ -33,6 +33,7 @@ class Star(Base):
             death_date=request["death_date"],
             relationship=request["relationship"],
             persona=request["persona"],
+            chat_prompt_input_data=chat_prompt_input_data,
             user_id=user_id
         )
     
