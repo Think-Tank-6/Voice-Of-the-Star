@@ -103,12 +103,14 @@ def upload_voice_handler(
     user: User = Depends(get_authenticated_user),   # 유저 검증 dependency
     star_repo: StarRepository = Depends(StarRepository),
 ) -> StarSchema:
+    
 
-    star: Star = Star.create(
-        request=request, 
-        user_id=user.user_id
-    )
-    star: Star = star_repo.create_star(star=star)
+    # text_generator = TextGeneration(request=request)
+    # chat_prompt_input_data = text_generator.create_prompt_input()
+
+    
+    star: Star = Star.create(request=request, user_id=user.user_id)  
+    star: Star = star_repo.create_star(star=star)  
     return StarSchema.from_orm(star)
 
 
