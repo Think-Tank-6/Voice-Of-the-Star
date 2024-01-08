@@ -28,3 +28,9 @@ class CreateStarRequest(BaseModel):
     relationship: str
     persona: Optional[str]
     image: Optional[str]
+
+
+class UpdateStarRequest(BaseModel):
+    nickname: Optional[str]
+    
+    

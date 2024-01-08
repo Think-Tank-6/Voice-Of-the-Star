@@ -1,6 +1,6 @@
 .env
 __pycache__/
-
+resources/
 
 # audio files
 *.wav

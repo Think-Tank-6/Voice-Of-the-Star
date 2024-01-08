@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, Form, HTTPException, Body
 from schema.response import JWTResponse, UserSchema
 from database.repository import UserRepository
 from database.orm import User
@@ -36,6 +36,25 @@ def user_join_handler(
     user: User = user_repo.save_user(user=user)
     return UserSchema.from_orm(user)
 
+
+@router.post("/join/email-check", status_code=200)
+def email_check_handler(
+    input_email: str = Form(...),
+    user_repo: UserRepository = Depends(),
+):
+    user: User = user_repo.get_user_by_user_id(user_id=input_email)
+    
+    if user:
+        return {
+            "status": "unavailable",
+            "message": "Email is already in use.",
+        }
+    
+    return {
+            "status": "available",
+            "message": "Email is available.",
+        }
+        
 
 @router.post("/login")
 def user_login_handler(

@@ -54,5 +54,8 @@ from ai_models.text_generation.chat_generation import insert_persona_to_prompt, 
     
     
         
-    
+# class SpeakerIdentification:
+
+#     def run_speaker_identification():
+#         return []
 
