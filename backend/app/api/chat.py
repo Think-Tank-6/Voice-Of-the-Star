@@ -81,3 +81,4 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str, room_id: int):
         manager.disconnect(user_id)
     except Exception as e:
         logger.error(f"Error: {e}")
+
