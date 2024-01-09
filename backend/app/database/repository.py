@@ -7,6 +7,7 @@ import datetime
 
 from database.orm import Star, User, Room
 
+
 class StarRepository:
     def __init__(self, session: Session = Depends(get_db)):
         self.session = session
@@ -58,6 +59,12 @@ class UserRepository:
         users = self.session.query(User).order_by(User.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
         total = self.session.query(User).count()
         return users, total
+    
+    def update_user(self, user: User) -> User:
+        self.session.add(instance=user)
+        self.session.commit()
+        self.session.refresh(instance=user)
+        return user
 
     
 class RoomRepository:
@@ -74,6 +81,7 @@ class RoomRepository:
         self.session.commit()
         self.session.refresh(instance=room)
         return room
+    
     
 class ChatRepository:
     def __init__(self, messages_collection = Depends(get_messages_collection)):

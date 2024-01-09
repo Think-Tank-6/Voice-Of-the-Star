@@ -29,8 +29,9 @@ class UserSchema(BaseModel):
     phone: str
     policy_agreement_flag: bool
     birth: date
-    image: str
-    policy_agreement_flag: bool
+    image: str | None
+    payment_id: str | None
+    credit: int
     user_type: int
     user_status: int
     created_at: datetime

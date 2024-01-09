@@ -1,7 +1,7 @@
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, LargeBinary, String, Date, Text, func
 from sqlalchemy.orm import declarative_base, relationship
 
-from schema.request import CreateStarRequest, JoinRequest
+from schema.request import CreateStarRequest
 
 Base = declarative_base()
 
@@ -56,9 +56,11 @@ class User(Base):
     password = Column(String(100), nullable=False)
     name = Column(String(50), nullable=True)
     phone = Column(String(15), nullable=True)
-    birth = Column(Date, nullable=True)
-    image = Column(String(256), nullable=True)
+    birth = Column(Date)
+    image = Column(String(256))
     policy_agreement_flag = Column(Boolean, nullable=False)
+    payment_id = Column(String(12))
+    credit = Column(Integer, nullable=False, default=0)
     user_type = Column(Integer, nullable=False, default=1)
     user_status = Column(Integer, nullable=False, default=1)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
@@ -73,7 +75,7 @@ class User(Base):
         name: str, 
         phone: str,
         birth: Date,
-        image: str, 
+        # image: str, 
         policy_agreement_flag: bool,
     ) -> "User":
         return cls(
@@ -82,9 +84,13 @@ class User(Base):
             name=name,
             phone=phone,
             birth=birth,
-            image=image,
+            # image=image,
             policy_agreement_flag=policy_agreement_flag,
         )
+    
+    def update(self, image: str) -> "User":
+        self.image = image
+        return self
 
 
 # 채팅방

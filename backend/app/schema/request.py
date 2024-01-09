@@ -1,4 +1,3 @@
-from fastapi import Form, UploadFile
 from pydantic import BaseModel
 
 from datetime import date
@@ -10,8 +9,7 @@ class JoinRequest(BaseModel):
     password: str
     name: str
     phone: str
-    birth: Optional[date]
-    image: Optional[str]
+    birth: date
     policy_agreement_flag: bool
 
 

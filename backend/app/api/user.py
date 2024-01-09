@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, Form, HTTPException, Body
+from fastapi import APIRouter, Depends, File, HTTPException, Body, UploadFile
+from security import get_access_token
 from schema.response import JWTResponse, UserSchema
 from database.repository import UserRepository
 from database.orm import User
@@ -13,6 +14,16 @@ class KakaoLoginRequest(BaseModel):
     access_token: str
 
 router = APIRouter(prefix="/users")
+mypage_router = APIRouter(prefix="/mypage")
+
+
+# 유저 검증 및 조회(공통)
+def get_authenticated_user(
+    access_token: str = Depends(get_access_token),
+    auth_service: AuthService = Depends(),
+    user_repo: UserRepository = Depends(),
+) -> User:
+    return auth_service.verify_user(access_token=access_token, user_repo=user_repo)
 
 
 @router.post("/join", status_code=201)
@@ -20,7 +31,7 @@ def user_join_handler(
     request: JoinRequest,
     auth_service: AuthService = Depends(),
     user_repo: UserRepository = Depends(),
-):
+) -> UserSchema:
     hashed_password: str = auth_service.hash_password(
         plain_password=request.password
     )
@@ -30,7 +41,6 @@ def user_join_handler(
         name=request.name,
         phone=request.phone,
         birth=request.birth,
-        image=request.image,
         policy_agreement_flag=request.policy_agreement_flag
     )
     user: User = user_repo.save_user(user=user)
@@ -126,3 +136,36 @@ def kakao_login_handler(
     else:
         existing_access_token: str = auth_service.create_jwt(user_id=user.user_id)
         return JWTResponse(access_token=existing_access_token)
+    
+
+@mypage_router.get("", status_code=200)
+def get_user_handler(
+    user: User = Depends(get_authenticated_user),
+    user_repo: UserRepository = Depends(),
+) -> UserSchema:
+    
+    user: User = user_repo.get_user_by_user_id(user.user_id)
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User Not Found")
+    
+    return UserSchema.from_orm(user)
+
+
+@mypage_router.post("/modify", status_code=201)
+def update_user_handler(
+    image: UploadFile = File(...),
+    user: User = Depends(get_authenticated_user),
+    user_repo: UserRepository = Depends(),
+) -> UserSchema:
+    
+    user: User = user_repo.get_user_by_user_id(user.user_id)
+    
+    if not user:
+        raise HTTPException(status_code=404, detail="User Not Found")
+    
+    image_url = "test"
+    user: User = user.update(image=image_url)
+    user: User = user_repo.update_user(user=user)
+    return UserSchema.from_orm(user)
+
