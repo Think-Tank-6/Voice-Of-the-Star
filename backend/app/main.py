@@ -1,21 +1,14 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
+import os
 
 from api import star, user, chat, admin  # 'api' 디렉토리에 있는 모듈을 임포트합니다.
 
 app = FastAPI()
 
-origins = [
-    "http://localhost",
-    "http://localhost:8000",
-    "http://localhost:8080",
-    "http://localhost:19002",
-    "http://localhost:19006",
-    "http://172.20.144.1:8081",  
-    "http://172.20.144.1:19002",  
-    "http://172.20.144.1:8000",  
-    "ws://172.20.144.1:8081",  
-]
+load_dotenv()
+origins = os.getenv("ORIGIN")
 
 app.add_middleware(
     CORSMiddleware,

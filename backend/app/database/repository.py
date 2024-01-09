@@ -75,14 +75,32 @@ class RoomRepository:
         self.session.refresh(instance=room)
         return room
     
-def save_message(room_id, user_id, star_id, message_text):
-    messages_collection = get_messages_collection()
-    message = {
-        "room_id": room_id,
-        "user_id": user_id,
-        "star_id": star_id,
-        "message": message_text,
-        "created_at": datetime.datetime.utcnow()
-    }
-    result = messages_collection.insert_one(message)
-    return result.inserted_id 
+class ChatRepository:
+    def __init__(self, messages_collection = Depends(get_messages_collection)):
+        self.messages_collection = messages_collection
+
+    def save_message(self, room_id, sender, content):
+        message = {
+            "room_id": room_id,
+            "sender": sender,
+            "content": content,
+            "created_at": datetime.datetime.utcnow()
+        }
+        result = self.messages_collection.insert_one(message)
+        return result.inserted_id
+
+    def get_last_message(self, room_id):
+        last_message = self.messages_collection.find_one(
+            {"room_id": room_id},
+            sort=[("created_at", -1)]
+        )
+        return last_message
+    
+    def get_messages(self, room_id: int, limit: int) -> List[dict]:
+        """
+        특정 채팅방의 최근 채팅 메시지를 가져옵니다.
+        :param room_id: 채팅방 ID
+        :param limit: 반환할 메시지의 최대 개수
+        :return: 채팅 메시지 리스트
+        """
+        return list(self.db.collection.find({"room_id": room_id}).sort("created_at", -1).limit(limit))
