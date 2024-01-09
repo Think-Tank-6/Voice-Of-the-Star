@@ -116,6 +116,13 @@ def upload_voice_handler(
 
     return {"speaker_num":speaker_num, "speaker_sample_list":speaker_sample_list}
 
+# star 생성(보이스 선택)
+@router.post("/voice-select", status_code=201)
+def upload_voice_handler(
+    user: User = Depends(get_authenticated_user),  
+) -> StarSchema:
+    return {"message":"voice select 페이지"}
+
 
 # star 수정
 @router.patch("/{star_id}", status_code=200)
