@@ -86,8 +86,8 @@ async def create_star_handler(
     }
 
     # Text Generation
-    text_generator = TextGeneration(request=request)
-    chat_prompt_input_data = text_generator.create_prompt_input()
+    # text_generator = TextGeneration(request=request)
+    # chat_prompt_input_data = text_generator.create_prompt_input()
 
     chat_prompt_input_data = "test"
 
@@ -105,8 +105,11 @@ async def create_star_handler(
 # star 생성(보이스 업로드)
 @router.post("/voice-upload", status_code=200)
 def upload_voice_handler(
-    user: User = Depends(get_authenticated_user),  
-) -> StarSchema:
+    audio_file: UploadFile = File(...),
+    # user: User = Depends(get_authenticated_user),  
+):
+    print("type : ", type(audio_file))
+    print("audio_file", audio_file)
     return {"message":"voice upload 페이지"}
 
 

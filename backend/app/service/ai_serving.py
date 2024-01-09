@@ -4,18 +4,9 @@ from openai import OpenAI
 import os
 load_dotenv()
 
-import sys
-my_path = os.getenv("MY_PATH")
-sys.path.append(my_path)
-
 from schema.request import CreateStarRequest
 from ai_models.text_generation.characteristic_generation import merge_prompt_text,get_characteristics 
 from ai_models.text_generation.chat_generation import insert_persona_to_prompt, merge_prompt_input, prepare_chat
-# from ....ai_models.text_generation.characteristic_generation import merge_prompt_text,get_characteristics
-# from ....ai_models.text_generation.chat_generation import insert_persona_to_prompt,merge_prompt_input,prepare_chat
-
-### Load GPT ###
-
 
 
 class TextGeneration:
