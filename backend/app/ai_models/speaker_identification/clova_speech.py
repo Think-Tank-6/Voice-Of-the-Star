@@ -74,7 +74,8 @@ class ClovaSpeechClient:
         }
         print(json.dumps(request_body, ensure_ascii=False).encode('UTF-8'))
         files = {
-            'media': open(file, 'rb'),
+            # 'media': open(file, 'rb'),
+            'media' : file,
             'params': (None, json.dumps(request_body, ensure_ascii=False).encode('UTF-8'), 'application/json')
         }
         response = requests.post(headers=headers, url=self.invoke_url + '/recognizer/upload', files=files)
