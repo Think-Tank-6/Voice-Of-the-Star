@@ -12,3 +12,5 @@ ai_models/text_generation/test_data
 ai_models/voice_cloning/data
 
 
+# requirements.txt
+backend/requirements.txt
