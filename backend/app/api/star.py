@@ -9,6 +9,7 @@ from database.repository import UserRepository, StarRepository, ChatRepository
 from schema.request import CreateStarRequest
 from schema.response import StarListSchema, StarSchema
 from service.ai_serving import TextGeneration
+from service.ai_serving import SpeakerIdentification
 
 router = APIRouter(prefix="/stars")
 
@@ -105,20 +106,15 @@ async def create_star_handler(
 # star 생성(보이스 업로드)
 @router.post("/voice-upload", status_code=200)
 def upload_voice_handler(
-    audio_file: UploadFile = File(...),
-    # user: User = Depends(get_authenticated_user),  
-):
-    print("type : ", type(audio_file))
-    print("audio_file", audio_file)
-    return {"message":"voice upload 페이지"}
+    original_voice_file: UploadFile = File(...),
+    user: User = Depends(get_authenticated_user)
+    ):
 
+    speaker_identification = SpeakerIdentification(original_voice_file)
+    speaker_num, speaker_sample_list = speaker_identification.get_speaker_samples(original_voice_file)
+    
 
-# star 생성(보이스 선택)
-@router.post("/voice-select", status_code=201)
-def upload_voice_handler(
-    user: User = Depends(get_authenticated_user),  
-) -> StarSchema:
-    return {"message":"voice select 페이지"}
+    return {"speaker_num":speaker_num, "speaker_sample_list":speaker_sample_list}
 
 
 # star 수정
@@ -152,3 +148,4 @@ def delete_star_handler(
     if not star:
         raise HTTPException(status_code=404, detail="Star Not Found")
     star_repo.delete_star(star_id=star_id)
+
