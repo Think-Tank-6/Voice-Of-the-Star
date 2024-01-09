@@ -4,7 +4,7 @@ from schema.response import JWTResponse, UserSchema
 from database.repository import UserRepository
 from database.orm import User
 from service.auth import AuthService
-from schema.request import EmailCheckRequest, JoinRequest, LoginRequest
+from schema.request import EmailCheckRequest, JoinRequest, LoginRequest, ModifyPasswordRequest
 from starlette.status import HTTP_400_BAD_REQUEST
 import requests
 from pydantic import BaseModel
@@ -152,7 +152,7 @@ def get_user_handler(
     return UserSchema.from_orm(user)
 
 
-@mypage_router.post("/modify", status_code=201)
+@mypage_router.patch("/modify-info", status_code=201)
 def update_user_handler(
     image: UploadFile = File(...),
     user: User = Depends(get_authenticated_user),
@@ -169,3 +169,27 @@ def update_user_handler(
     user: User = user_repo.update_user(user=user)
     return UserSchema.from_orm(user)
 
+
+@mypage_router.patch("/modify-password", status_code=201)
+def modify_user_password_handler(
+    request: ModifyPasswordRequest,
+    user: User = Depends(get_authenticated_user),
+    auth_service: AuthService = Depends(),
+    user_repo: UserRepository = Depends()
+):
+    
+    verified: bool = auth_service.verify_password(
+        plain_password=request.current_password,
+        hash_password=user.password,
+    )
+    if not verified:
+        raise HTTPException(status_code=401, detail="Not Authorized")
+    
+    hashed_password: str = auth_service.hash_password(
+        plain_password=request.new_password
+    )
+    user: User = user.update_password(
+        hashed_password=hashed_password,
+    )
+    user: User = user_repo.save_user(user=user)
+    return UserSchema.from_orm(user)

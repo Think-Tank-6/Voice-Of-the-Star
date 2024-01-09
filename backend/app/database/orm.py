@@ -75,7 +75,6 @@ class User(Base):
         name: str, 
         phone: str,
         birth: Date,
-        # image: str, 
         policy_agreement_flag: bool,
     ) -> "User":
         return cls(
@@ -84,12 +83,15 @@ class User(Base):
             name=name,
             phone=phone,
             birth=birth,
-            # image=image,
             policy_agreement_flag=policy_agreement_flag,
         )
     
     def update(self, image: str) -> "User":
         self.image = image
+        return self
+    
+    def update_password(self, hashed_password: str) -> "User":
+        self.password = hashed_password
         return self
 
 

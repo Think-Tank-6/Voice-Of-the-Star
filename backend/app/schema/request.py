@@ -36,5 +36,8 @@ class UpdateStarRequest(BaseModel):
     nickname: Optional[str]
 
 
+class ModifyPasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
     
     
