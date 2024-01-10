@@ -29,3 +29,7 @@ def get_mongo():
 def get_messages_collection():
     db = get_mongo()
     return db['messages']
+
+def get_gpt_messages_collection():
+    db = get_mongo()
+    return db['gptmessages']

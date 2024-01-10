@@ -2,7 +2,7 @@ from typing import List
 from fastapi import Depends
 from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
-from database.connection import get_db, get_messages_collection
+from database.connection import get_db, get_messages_collection, get_gpt_messages_collection
 import datetime
 
 from database.orm import Star, User, Room
@@ -83,19 +83,24 @@ class RoomRepository:
         return room
     
     
-class ChatRepository:
+class MessageRepository:
     def __init__(self, messages_collection = Depends(get_messages_collection)):
         self.messages_collection = messages_collection
 
     def save_message(self, room_id, sender, content):
         message = {
-            "room_id": room_id,
             "sender": sender,
             "content": content,
             "created_at": datetime.datetime.utcnow()
         }
-        result = self.messages_collection.insert_one(message)
-        return result.inserted_id
+        
+        # 해당 room_id의 문서를 찾고, 메시지 배열에 새 메시지를 추가
+        result = self.messages_collection.update_one(
+            {"room_id": room_id},
+            {"$push": {"messages": message}},
+            upsert=True
+        )
+        return result
 
     def get_last_message(self, room_id):
         last_message = self.messages_collection.find_one(
@@ -104,6 +109,29 @@ class ChatRepository:
         )
         return last_message
     
+    def get_room_info(self, room_id: int):
+        """
+        특정 채팅방의 정보를 가져옵니다.
+        :param room_id: 채팅방 ID
+        :return: 채팅방 정보 (사용자 ID와 챗봇 ID 포함)
+        """
+        # 이 부분은 실제 데이터베이스 쿼리로 대체해야 합니다.
+        # 예시 코드는 가상의 채팅방 정보를 반환합니다.
+        room_info = self.session.scalar(
+            select(Room).where(Room.room_id == room_id)
+        )
+        if room_info:
+            return {
+                "room_id": room_info.room_id,
+                "room_name": room_info.room_name,
+                "user_id": room_info.user_id,
+                "star_id": room_info.star_id,
+                "image_data": room_info.image_data,
+                "created_at": room_info.created_at
+            }
+        else:
+            return None
+    
     def get_messages(self, room_id: int, limit: int) -> List[dict]:
         """
         특정 채팅방의 최근 채팅 메시지를 가져옵니다.
@@ -111,4 +139,28 @@ class ChatRepository:
         :param limit: 반환할 메시지의 최대 개수
         :return: 채팅 메시지 리스트
         """
-        return list(self.db.collection.find({"room_id": room_id}).sort("created_at", -1).limit(limit))
+        return list(self.messages_collection.find({"room_id": room_id}).sort("created_at", -1).limit(limit))
+    
+class GptMessageRepository:
+    def __init__(self, messages_collection = Depends(get_gpt_messages_collection)):
+        self.messages_collection = messages_collection
+    
+    def save_gpt_message(self, star_id, sender, content):
+        gpt_message = {
+            "sender": sender,
+            "content": content,
+            "created_at": datetime.datetime.utcnow()
+        }
+        
+        # 해당 room_id의 문서를 찾고, 메시지 배열에 새 메시지를 추가
+        result = self.messages_collection.update_one(
+            {"star_id": star_id},
+            {"$push": {"messages": gpt_message}},
+            upsert=True
+        )
+        
+        return result
+
+    def get_gpt_message(self, gpt_data_id):
+       # 'gpt_messages' 컬렉션에서 데이터 검색
+        return self.messages_collection.find_one({"gpt_data_id": gpt_data_id})
