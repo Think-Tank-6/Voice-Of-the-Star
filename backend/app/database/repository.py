@@ -120,7 +120,17 @@ class GptMessageRepository:
         )
         
         return result
+    
+    def save_p_data(self, p_data):
+        result = self.messages_collection.update_one(
+            {"$set": {"p_data": p_data}},
+            upsert=True
+        )
+        return result
 
     def get_gpt_message(self, gpt_data_id):
        # 'gpt_messages' 컬렉션에서 데이터 검색
         return self.messages_collection.find_one({"gpt_data_id": gpt_data_id})
+    
+    def get_p_data(self, star_id):
+        return self.messages_collection.find_one({"star_id" : star_id})
