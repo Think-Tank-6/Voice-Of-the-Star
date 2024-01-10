@@ -85,10 +85,13 @@ class SpeakerIdentification:
 
         return None
 
-    def get_star_voice(self):
+    def save_star_voice(self,selected_speaker_id, speech_list, original_voice_byte_file,star_id):
         # speech_list 가져와서 고인 목소리 이어붙이는 작업
-
-        pass
+        audio_segment = AudioSegment.from_file(original_voice_byte_file)
+        combined_star_voice_file = audio_segment[0:0]
+        for v in speech_list[selected_speaker_id]:
+            combined_star_voice_file += audio_segment[int(v['start']):int(v['end'])]
+        combined_star_voice_file.export(f"{star_id}_combined_voice_file.wav", format="wav")
 
     
 
