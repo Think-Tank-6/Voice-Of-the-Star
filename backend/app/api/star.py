@@ -101,7 +101,7 @@ async def create_star_handler(
     )  
     star: Star = star_repo.create_star(star=star)
     
-    gptmessage_repo.save_gpt_message(star_id=star.star_id, p_data=chat_prompt_input_data)
+    gptmessage_repo.save_p_data(star_id=star.star_id, p_data=chat_prompt_input_data)
 
     return StarSchema.from_orm(star)
 
