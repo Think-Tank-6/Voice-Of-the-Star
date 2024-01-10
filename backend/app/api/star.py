@@ -5,7 +5,7 @@ from service.auth import AuthService
 from security import get_access_token
 
 from database.orm import Star, User
-from database.repository import UserRepository, StarRepository, ChatRepository
+from database.repository import UserRepository, StarRepository, MessageRepository
 from schema.request import CreateStarRequest
 from schema.response import StarListSchema, StarSchema
 from service.ai_serving import PromptGeneration
@@ -43,7 +43,7 @@ def get_stars_handler(
 @router.get("/{star_id}/last", status_code=200)
 def get_last_message(
     star_id: str, 
-    chat_repo: ChatRepository = Depends()
+    chat_repo: MessageRepository = Depends()
 ):
     last_message = chat_repo.get_last_message(star_id)
     return last_message
@@ -163,7 +163,7 @@ def delete_star_handler(
 # from security import get_access_token
 
 # from database.orm import Star, User
-# from database.repository import UserRepository, StarRepository, ChatRepository
+# from database.repository import UserRepository, StarRepository, MessageRepository
 # from schema.request import CreateStarRequest
 # from schema.response import StarListSchema, StarSchema
 # from service.ai_serving import PromptGeneration
@@ -200,7 +200,7 @@ def delete_star_handler(
 # @router.get("/{star_id}/last", status_code=200)
 # def get_last_message(
 #     star_id: str, 
-#     chat_repo: ChatRepository = Depends()
+#     chat_repo: MessageRepository = Depends()
 # ):
 #     last_message = chat_repo.get_last_message(star_id)
 #     return last_message
