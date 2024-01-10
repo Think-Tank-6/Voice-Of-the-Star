@@ -21,9 +21,9 @@ class PromptGeneration:
     API_KEY = os.getenv("GPT_API_KEY")
     client = OpenAI(api_key=API_KEY)
 
-    def __init__(self, request,original_text_file) -> None:
+    def __init__(self, request,original_text) -> None:
 
-        self.original_text_file = original_text_file
+        self.original_text = original_text
         self.star_gender = request["gender"]
         self.star_name = request["star_name"]
         self.persona = request["persona"]
@@ -33,17 +33,13 @@ class PromptGeneration:
         self.client = OpenAI(api_key=self.API_KEY)
 
         # 추후 수정
-        self.prompt_file_path = 'prompt_data/extract_characteristic.txt'
-        self.system_input_path = "prompt_data/system_input.txt"
+        self.prompt_file_path = os.getenv("PROMPT_FILE_PATH")
+        self.system_input_path = os.getenv("SYSTEM_INPUT_PATH")
 
-    def create_prompt_input(self,original_text_file) -> str:
- 
-        text = original_text_file.read()
-        decoded_text = text.decode("utf-8")
+    def create_prompt_input(self) -> str:
                
-        user_name = get_user_name(decoded_text)
-        if user_name:
-            star_text = extract_messages(decoded_text, user_name)
+        user_name = get_user_name(self.original_text)
+        star_text = extract_messages(self.original_text, user_name)
       
         star_text_12k = load_text_from_bottom(star_text, 12000,'gpt3.5')
         star_text_4k = load_text_from_bottom(star_text, 4000,'gpt4')
@@ -110,5 +106,5 @@ class ChatGeneration:
         # GPT에 대화 히스토리 넣고 답변 받기
         messages = prepare_chat(self.p_data)
         gpt_answer, messages = get_response(self.client,self.user_input, self.messages)
-
+        
         return gpt_answer, messages

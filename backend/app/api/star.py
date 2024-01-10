@@ -86,11 +86,14 @@ async def create_star_handler(
         "persona": persona,
     }
 
-    # Text Generation
-    # prompt_generator = PromptGeneration(request=request)
-    # chat_prompt_input_data = prompt_generator.create_prompt_input()
+    # Open text file
+    original_text = await original_text_file.read()
+    original_text = original_text.decode("utf-8")
 
-    chat_prompt_input_data = "test"
+    # Prompt Generation
+    prompt_generator = PromptGeneration(request,original_text)
+    chat_prompt_input_data = prompt_generator.create_prompt_input()
+
 
     # DB Save
     star: Star = Star.create(
