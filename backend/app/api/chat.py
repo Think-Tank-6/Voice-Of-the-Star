@@ -4,6 +4,7 @@ from database.repository import MessageRepository, GptMessageRepository
 from security import get_access_token
 import json
 import logging
+from service.ai_serving import ChatGeneration
 
 # 로거 설정
 logger = logging.getLogger(__name__)
@@ -100,7 +101,8 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
                 )
                 
                 # GPT 모델을 사용하여 응답 생성
-                gpt_response = generate_gpt_response(message_data["content"])
+                # 아래 함수 input 수정 필요
+                gpt_response, messages = generate_gpt_response(message_data["content"])
 
                 # 메시지와 GPT 응답에 room_id와 created_at를 추가합니다.
                 message_data['room_id'] = room_id
@@ -124,6 +126,8 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
     except Exception as e:
         logger.error(f"Error: {e}")
 
-def generate_gpt_response(user_input):
+def generate_gpt_response(user_input,p_data, messages):
     # GPT 모델을 사용하여 응답을 생성하는 로직 구현
-    pass
+    chat_generation = ChatGeneration(user_input,p_data, messages)
+    gpt_response = chat_generation.get_gpt_answer()
+    return gpt_response, messages
