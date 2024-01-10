@@ -8,8 +8,8 @@ def speaker_diarization(timestamp):
     speaker_sample_list = {}
 
     for seg in timestamp['segments']:
-        cur_speaker_id = int(seg['diarization']['label'])
-        if cur_speaker_id in speech_list:
+        cur_speaker_id = seg['diarization']['label']
+        if cur_speaker_id in speech_list.keys():
             speech_list[cur_speaker_id].append({'speaker_id':cur_speaker_id,'start':seg['start'],'end':seg['end'],'confidence':seg['confidence']})
         else:
             speech_list[cur_speaker_id] = [{'speaker_id':cur_speaker_id,'start':seg['start'],'end':seg['end'],'confidence':seg['confidence']}]
