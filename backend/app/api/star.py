@@ -11,6 +11,8 @@ from schema.response import StarListSchema, StarSchema
 from service.ai_serving import PromptGeneration
 from service.ai_serving import SpeakerIdentification
 
+from io import BytesIO
+
 router = APIRouter(prefix="/stars")
 
 
@@ -113,11 +115,19 @@ def upload_voice_handler(
     user: User = Depends(get_authenticated_user)
     ):
 
-    speaker_identification = SpeakerIdentification(original_voice_file)
-    speaker_num, speaker_sample_list = speaker_identification.get_speaker_samples(original_voice_file)
+    speaker_identification = SpeakerIdentification()
+    speaker_num, full_speech_list, speaker_sample_list = speaker_identification.get_speaker_samples(original_voice_file)
     
+    # speaker_sample_list dictionary안에 byteio instance 존재여부 확인 코드 -> 프론트 연결 후 삭제
+    audio_byte_type = "BytesIO" if isinstance(speaker_sample_list["1"]["audio_byte"], BytesIO) else str(type(speaker_sample_list["1"]["audio_byte"]))
+    print(audio_byte_type)
 
-    return {"speaker_num":speaker_num, "speaker_sample_list":speaker_sample_list}
+    extracted_voice_info = {
+        "speaker_num":speaker_num, 
+        "full_speech_list":full_speech_list, 
+        "speaker_sample_list":speaker_sample_list
+        }
+    return extracted_voice_info
 
 # star 생성(보이스 선택)
 @router.post("/voice-select", status_code=201)
