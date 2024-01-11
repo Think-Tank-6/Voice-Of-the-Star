@@ -93,24 +93,6 @@ class User(Base):
     def update_password(self, hashed_password: str) -> "User":
         self.password = hashed_password
         return self
-<<<<<<< Updated upstream
-=======
-
-
-# 채팅방
-class Room(Base):
-    __tablename__ = "room"
-
-    room_id = Column(Integer, primary_key=True, index=True)
-    room_name = Column(String(50), nullable=False)
-    star_id = Column(Integer, ForeignKey("star.star_id"), nullable=False)
-    user_id = Column(String(50), ForeignKey("user.user_id"), nullable=False)
-    image_data = Column(String(255))
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
- 
-    user = relationship("User")
-    star = relationship("Star")
-
 
 #관리자
 class Admin(Base): 
@@ -142,4 +124,3 @@ class Admin(Base):
             phone=phone,
             birth=birth,
         )
->>>>>>> Stashed changes
