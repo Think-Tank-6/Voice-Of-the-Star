@@ -55,31 +55,30 @@ class PromptGeneration:
         return chat_prompt_input_data
 
 
-
-
-
     
 class SpeakerIdentification:
 
-    def __init__(self,original_voice_file):
-        self.original_voice_file = original_voice_file
-        self.speech_list = []
-
-    def get_speaker_samples(self):
-        audio_byte = BytesIO(self.original_voice_file.file.read())
+    def get_speaker_samples(self,original_voice_file):
+        audio_byte = BytesIO(original_voice_file.file.read())
         audio_seg = AudioSegment.from_file(audio_byte)
         audio_binary = audio_seg.export(format="wav").read()
         res = ClovaSpeechClient().req_upload(file=audio_binary, completion='sync')
         timestamp = json.loads(res.text)
 
         speaker_num, speech_list, speaker_sample_list = speaker_diarization(timestamp)
-        self.speech_list = speech_list
 
-        # speaker_num: speaker 수, speaker_sample_list: speaker 각자의 목소리 담긴 리스트
-        # 이것들을 프론트에 넘겨줄 수 있도록 작업
+        # speaker_sample_list에 담긴 타임스탬프 이용해서 original_voice_file의 각 구간을 byteio로 변환
+        for key in speaker_sample_list.keys():
+            speaker_info = speaker_sample_list[key]
+            
+            segment = audio_seg[int(speaker_info['start']):int(speaker_info['end'])]
+            buffer = BytesIO()
+            segment.export(buffer, format="wav")
+            buffer.seek(0)
 
-
-        return None
+            speaker_sample_list[key]["audio_byte"] = buffer
+            
+        return speaker_num, speech_list, speaker_sample_list
 
     def save_star_voice(self,selected_speaker_id, speech_list, original_voice_byte_file,star_id):
         # speech_list 가져와서 고인 목소리 이어붙이는 작업
