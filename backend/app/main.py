@@ -8,7 +8,8 @@ from api import star, user, chat, admin
 app = FastAPI()
 
 load_dotenv()
-origins = os.getenv("ORIGIN")
+origins_str = os.getenv("ORIGIN", "")
+origins = origins_str.split(",") if origins_str else []
 
 app.add_middleware(
     CORSMiddleware,

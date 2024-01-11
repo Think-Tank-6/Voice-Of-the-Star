@@ -93,3 +93,53 @@ class User(Base):
     def update_password(self, hashed_password: str) -> "User":
         self.password = hashed_password
         return self
+<<<<<<< Updated upstream
+=======
+
+
+# 채팅방
+class Room(Base):
+    __tablename__ = "room"
+
+    room_id = Column(Integer, primary_key=True, index=True)
+    room_name = Column(String(50), nullable=False)
+    star_id = Column(Integer, ForeignKey("star.star_id"), nullable=False)
+    user_id = Column(String(50), ForeignKey("user.user_id"), nullable=False)
+    image_data = Column(String(255))
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+ 
+    user = relationship("User")
+    star = relationship("Star")
+
+
+#관리자
+class Admin(Base): 
+    __tablename__ = "admin"
+
+    admin_number = Column(Integer, primary_key=True, autoincrement=True)
+    admin_id = Column(String(50), nullable=False)
+    password = Column(String(100), nullable=False)
+    name = Column(String(50), nullable=True)
+    phone = Column(String(15), nullable=True)
+    birth = Column(Date)
+    admin_status = Column(Integer, nullable=False, default=1)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+
+    @classmethod
+    def create(
+        cls, 
+        admin_id: str, 
+        hashed_password: str, 
+        name: str, 
+        phone: str,
+        birth: Date,
+    ) -> "Admin":
+        return cls(
+            admin_id=admin_id,
+            password=hashed_password,
+            name=name,
+            phone=phone,
+            birth=birth,
+        )
+>>>>>>> Stashed changes

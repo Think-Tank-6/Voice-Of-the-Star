@@ -12,7 +12,6 @@ class JoinRequest(BaseModel):
     birth: date
     policy_agreement_flag: bool
 
-
 class EmailCheckRequest(BaseModel):
     input_email: str
 
@@ -39,5 +38,17 @@ class UpdateStarRequest(BaseModel):
 class ModifyPasswordRequest(BaseModel):
     current_password: str
     new_password: str
+
+
+class AdminJoinRequest(BaseModel):
+    admin_id: str
+    password: str
+    name: str
+    phone: str
+    birth: date
+
+class AdminLoginRequest(BaseModel):
+    admin_id: str
+    password: str
     
     

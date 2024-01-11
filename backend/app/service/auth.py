@@ -4,9 +4,8 @@ from fastapi import Depends, HTTPException
 from jose import jwt
 from dotenv import load_dotenv
 import os
-from database.orm import User
-from database.repository import UserRepository
-
+from database.orm import User, Admin
+from database.repository import UserRepository, AdminRepository
 from security import get_access_token
 
 load_dotenv()
@@ -62,6 +61,40 @@ class AuthService:
             raise HTTPException(status_code=404, detail="User Not Found")
         
         return user
+    
+    def admincreate_jwt(self, admin_id: str) -> str: 
+        return jwt.encode(
+            {
+                "admin_id": admin_id,
+                "exp": datetime.now() + timedelta(days=1),  # 토큰의 만료시간 = 하루(요청한 시간부터)
+            }, 
+            self.SECRET_KEY, 
+            algorithm=self.JWT_ALGORITHM
+        )
+    
+    def admindecode_jwt(self, access_token: str) -> str:
+        payload: dict = jwt.decode(
+            access_token, 
+            self.SECRET_KEY, 
+            algorithms=[self.JWT_ALGORITHM]
+        )
+        return payload["admin_id"]   # user_id 리턴
+    
+    def verify_admin(
+            self, 
+            access_token: str = Depends(get_access_token),
+            admin_repo: AdminRepository = Depends(),
+        ) -> Admin:
+
+        # 유저 검증
+        admin_id: str = self.decode_jwt(access_token=access_token)
+
+        # 유저 조회
+        admin: User | None = admin_repo.get_admin_by_admin_id(adin_id=admin_id)
+        if not admin:
+            raise HTTPException(status_code=404, detail="User Not Found")
+        
+        return admin
         
     
 
