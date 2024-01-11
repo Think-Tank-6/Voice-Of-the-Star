@@ -4,13 +4,8 @@ from sqlalchemy import delete, select
 from sqlalchemy.orm import Session
 from database.connection import get_db, get_messages_collection, get_gpt_messages_collection
 import datetime
-
-<<<<<<< Updated upstream
-from database.orm import Star, User
-=======
 from database.orm import Star, User, Room, Admin
 
->>>>>>> Stashed changes
 
 class StarRepository:
     def __init__(self, session: Session = Depends(get_db)):
