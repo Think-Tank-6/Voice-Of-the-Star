@@ -5,7 +5,7 @@ from service.auth import AuthService
 from security import get_access_token
 
 from database.orm import Star, User
-from database.repository import UserRepository, StarRepository, MessageRepository
+from database.repository import UserRepository, StarRepository, MessageRepository, GptMessageRepository
 from schema.request import CreateStarRequest
 from schema.response import StarListSchema, StarSchema
 from service.ai_serving import PromptGeneration
@@ -75,6 +75,7 @@ async def create_star_handler(
     original_text_file: UploadFile = File(...),
     user: User = Depends(get_authenticated_user),   # 유저 검증 dependency
     star_repo: StarRepository = Depends(StarRepository),
+    gptmessage_repo : GptMessageRepository = Depends(GptMessageRepository)
 ) -> StarSchema:
     
     request = {
@@ -102,6 +103,8 @@ async def create_star_handler(
         user_id=user.user_id
     )  
     star: Star = star_repo.create_star(star=star)
+    
+    gptmessage_repo.save_p_data(star_id=star.star_id, p_data=chat_prompt_input_data)
 
     return StarSchema.from_orm(star)
 
