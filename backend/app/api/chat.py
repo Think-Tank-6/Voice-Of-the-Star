@@ -4,7 +4,7 @@ from database.repository import MessageRepository, GptMessageRepository
 from security import get_access_token
 import json
 import logging
-from service.ai_serving import ChatGeneration
+from service.ai_serving import ChatGeneration, DetectCrime
 
 # 로거 설정
 logger = logging.getLogger(__name__)
@@ -131,3 +131,11 @@ def generate_gpt_response(user_input,p_data, messages):
     chat_generation = ChatGeneration(user_input,p_data, messages)
     gpt_response = chat_generation.get_gpt_answer()
     return gpt_response, messages
+
+def detect_criminal_activity(text_input) -> bool:
+    # 함수 밖에 선언 필요 (추후 수정)
+    voice_phishing_p_data = ""
+    detect_crime = DetectCrime(voice_phishing_p_data)
+
+    is_detected = detect_crime.detect_voice_phishing(text_input)
+    return is_detected
