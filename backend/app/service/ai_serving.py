@@ -107,3 +107,23 @@ class ChatGeneration:
         gpt_answer, messages = get_response(self.client,self.user_input, self.messages)
         
         return gpt_answer, messages
+    
+
+class DetectCrime:
+    API_KEY = os.getenv("GPT_API_KEY")
+    client = OpenAI(api_key=API_KEY)
+
+    def __init__(self,voice_phishing_p_data):
+        self.voice_phishing_p_data = voice_phishing_p_data
+
+    def detect_voice_phishing(self,text_input) -> bool:
+        
+        # 함수이름 수정 필요
+        gpt_answer = get_response(self.client,text_input,self.voice_phishing_p_data)
+
+        if "Yes" in gpt_answer or "yes" in gpt_answer:
+            is_detected = True
+        else:
+            is_detected = False
+
+        return is_detected
