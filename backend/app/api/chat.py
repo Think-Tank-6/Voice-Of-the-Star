@@ -44,24 +44,24 @@ manager = ConnectionManager()
 message_repo = MessageRepository()
 gpt_message_repo = GptMessageRepository()
 
-@router.get("/{room_id}/messages")
-async def get_chat_messages(room_id: int, limit: int = 50):
+@router.get("/{star_id}/messages")
+async def get_chat_messages(star_id: int, limit: int = 50):
     """
     특정 채팅방의 최근 채팅 메시지를 가져옵니다.
-    :param room_id: 채팅방 ID
+    :param star_id: 채팅방 ID
     :param limit: 반환할 메시지의 최대 개수
     :return: 채팅 메시지 리스트
     """
     try:
-        messages = message_repo.get_messages(room_id, limit)
+        messages = message_repo.get_messages(star_id, limit)
         return messages
     except Exception as e:
-        logger.error(f"Error fetching messages for room {room_id}: {e}")
+        logger.error(f"Error fetching messages for star {star_id}: {e}")
         raise HTTPException(status_code=500, detail="Error fetching messages")
 
-@router.websocket("/{room_id}")
-async def websocket_endpoint(websocket: WebSocket, room_id: int):
-    logger.debug(f"WebSocket connection opened for room: {room_id}")
+@router.websocket("/{star_id}")
+async def websocket_endpoint(websocket: WebSocket, star_id: int):
+    logger.debug(f"WebSocket connection opened for star: {star_id}")
     await websocket.accept()
 
     # 초기 메시지를 기다립니다. 이 메시지는 사용자 ID와 star_id를 포함해야 합니다.
@@ -86,9 +86,9 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
                     logger.error("Invalid message format")
                     continue
 
-                # 메시지 저장 로직: MessageRepository와 GptMessageRepository 모두에 저장
+                # 메시지 저장 로직: MessageRepository에 저장
                 message_repo.save_message(
-                    room_id=room_id,
+                    star_id=star_id,
                     sender=user_id,
                     content=message_data["content"]
                 )
@@ -104,11 +104,11 @@ async def websocket_endpoint(websocket: WebSocket, room_id: int):
                 # 아래 함수 input 수정 필요
                 gpt_response, messages = generate_gpt_response(message_data["content"])
 
-                # 메시지와 GPT 응답에 room_id와 created_at를 추가합니다.
-                message_data['room_id'] = room_id
+                # 메시지와 GPT 응답에 star_id와 created_at를 추가합니다.
+                message_data['star_id'] = star_id
                 message_data['created_at'] = datetime.datetime.utcnow().isoformat()
                 gpt_message = {
-                    "room_id": room_id,
+                    "star_id": star_id,
                     "sender": "GPT",
                     "content": gpt_response,
                     "created_at": datetime.datetime.utcnow().isoformat()
