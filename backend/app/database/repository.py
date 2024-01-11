@@ -5,7 +5,12 @@ from sqlalchemy.orm import Session
 from database.connection import get_db, get_messages_collection, get_gpt_messages_collection
 import datetime
 
+<<<<<<< Updated upstream
 from database.orm import Star, User
+=======
+from database.orm import Star, User, Room, Admin
+
+>>>>>>> Stashed changes
 
 class StarRepository:
     def __init__(self, session: Session = Depends(get_db)):
@@ -134,4 +139,39 @@ class GptMessageRepository:
             upsert=True
         )
         
+<<<<<<< Updated upstream
         return result
+=======
+        return result
+
+    def get_gpt_message(self, gpt_data_id):
+       # 'gpt_messages' 컬렉션에서 데이터 검색
+        return self.messages_collection.find_one({"gpt_data_id": gpt_data_id})
+    
+
+class AdminRepository:
+    def __init__(self, session: Session = Depends(get_db)):
+        self.session = session
+
+    def get_admin_by_admin_id(self, admin_id: str) -> Admin | None:
+        return self.session.query(Admin).filter(Admin.admin_id == admin_id).first()
+
+    def save_admin(self, admin: Admin) -> Admin:
+        self.session.add(admin)
+        self.session.commit()
+        self.session.refresh(admin)
+        return admin
+    
+    def get_admins_paginated(self, page: int, page_size: int):
+        admins = self.session.query(Admin).order_by(Admin.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+        total = self.session.query(Admin).count()
+        return admins, total
+    
+    def get_all_admins(self):
+        return self.session.query(Admin).all()
+    
+    def get_admin_by_admin_id(self, admin_id: str) -> User | None:
+        return self.session.scalar(
+            select(Admin).where(Admin.admin_id == admin_id)
+        )
+>>>>>>> Stashed changes

@@ -42,3 +42,15 @@ class UserSchema(BaseModel):
 
 class JWTResponse(BaseModel):
     access_token: str
+    
+
+class AdminSchema(BaseModel):
+    admin_id: str
+    name: str
+    phone: str
+    birth: date
+    admin_status: int
+    created_at: datetime
+
+    class Config:
+        orm_mode = True    
