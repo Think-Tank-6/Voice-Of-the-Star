@@ -117,9 +117,9 @@ class GptMessageRepository:
         )
         return result
 
-    def get_gpt_message(self, gpt_data_id):
+    def get_gpt_message(self, star_id):
        # 'gpt_messages' 컬렉션에서 데이터 검색
-        return self.gpt_messages_collection.find_one({"gpt_data_id": gpt_data_id})
+        return self.gpt_messages_collection.find_one({"star_id": star_id})
     
     def get_p_data(self, star_id):
         return self.gpt_messages_collection.find_one({"star_id" : star_id})

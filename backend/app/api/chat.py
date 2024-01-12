@@ -51,14 +51,18 @@ async def websocket_endpoint(
         star_id: int
     ):
 
-    #p_data 가져오기
+    
+    #p_data 가져오기 (수정필요)
     p_data = gpt_message_repo.get_p_data(star_id)
+    if p_data is not None:
+        gpt_input_list = p_data["messages"]
+    else:
+        gpt_input_list = []
 
-    # 지금까지 저장된 대화 내역 가져오기
-    # gpt_message_list = gpt_message_repo.get_gpt_messages(user_id)
-    gpt_message_list = []
-    # user_message_list = message_repo.get_messages(star_id, len(message_data))
-    user_message_list = []
+    chat_generation = ChatGeneration(p_data, gpt_input_list)
+
+    # 현재 채팅 내역 
+    full_message_list = []
     
     # 연결 수락 및 처리
     await websocket.accept()
@@ -78,10 +82,9 @@ async def websocket_endpoint(
                 user_input = message_data['content']
 
                 # GPT 모델을 사용하여 응답 생성
-                gpt_response, gpt_message_list = generate_gpt_response(user_input, p_data, gpt_message_list)
-                
-                user_message_list.append({"role":"user","content":user_input})
-                user_message_list.append({"role":"assistant","content":gpt_response})
+                # gpt 내에서 자동으로 user_input, gpt_response 저장
+                gpt_response, _ = chat_generation.get_gpt_answer(user_input)
+                full_message_list.append({"user_input": user_input,"gpt_response":gpt_response})
 
                 # 클라이언트에게 사용자 메시지와 GPT 응답 전송
                 await manager.send_message(message_data, star_id)
@@ -92,28 +95,29 @@ async def websocket_endpoint(
     except WebSocketDisconnect:
         logger.debug(f"WebSocket disconnected for user: {star_id}")
         
-        # 메시지 저장 로직: MessageRepository에 사용자 응답 저장
-        message_repo.save_message(star_id=star_id, sender="user", content=user_input)
 
-        # 메시지 저장 로직: MessageRepository에 gpt 응답 저장
-        message_repo.save_message(star_id=star_id, sender="assistant", content=gpt_response)
-        
-        # GptMessageRepository에 사용자 응답 저장
-        gpt_message_repo.save_gpt_message(star_id=star_id, sender="user", content=user_input)
+        for current_message in full_message_list:
+            current_user_input = current_message["user_input"]
+            current_gpt_response = current_message["gpt_response"]
 
-        # GptMessageRepository에 gpt 응답 저장
-        gpt_message_repo.save_gpt_message(star_id=star_id, sender="assistant", content=gpt_response)
+            # 메시지 저장 로직: MessageRepository에 사용자 응답 저장
+            message_repo.save_message(star_id=star_id, sender="user", content=current_user_input)
+
+            # 메시지 저장 로직: MessageRepository에 gpt 응답 저장
+            message_repo.save_message(star_id=star_id, sender="assistant", content=current_gpt_response)
+
+            # GptMessageRepository에 사용자 응답 저장
+            gpt_message_repo.save_gpt_message(star_id=star_id, sender="user", content=current_user_input)
+
+            # GptMessageRepository에 gpt 응답 저장
+            gpt_message_repo.save_gpt_message(star_id=star_id, sender="assistant", content=current_gpt_response)
+
         
         manager.disconnect(star_id)
     except Exception as e:
         logger.error(f"Error: {e}")
         await websocket.close(code=1011) 
         
-def generate_gpt_response(user_input,p_data, messages):
-    # GPT 모델을 사용하여 응답을 생성하는 로직 구현
-    chat_generation = ChatGeneration(user_input,p_data, messages)
-    gpt_response = chat_generation.get_gpt_answer()
-    return gpt_response, messages
 
 def detect_criminal_activity(text_input) -> bool:
     # 함수 밖에 선언 필요 (추후 수정)
@@ -122,3 +126,4 @@ def detect_criminal_activity(text_input) -> bool:
 
     is_detected = detect_crime.detect_voice_phishing(text_input)
     return is_detected
+
