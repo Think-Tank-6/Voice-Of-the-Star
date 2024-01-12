@@ -44,6 +44,22 @@ message_repo = MessageRepository()
 gpt_message_repo = GptMessageRepository()
 # user_repo = UserRepository()
 # user = Depends(get_authenticated_user)
+user_input = ""
+
+@router.get("/{star_id}/messages")
+async def get_chat_messages(star_id: int, limit: int = 50):
+    """
+    특정 채팅방의 최근 채팅 메시지를 가져옵니다.
+    :param star_id: 채팅방 ID
+    :param limit: 반환할 메시지의 최대 개수
+    :return: 채팅 메시지 리스트
+    """
+    try:
+        messages = message_repo.get_messages(star_id, limit)
+        return messages
+    except Exception as e:
+        logger.error(f"Error fetching messages for star {star_id}: {e}")
+        raise HTTPException(status_code=500, detail="Error fetching messages")
 
 @router.websocket("/{star_id}")
 async def websocket_endpoint(
@@ -103,6 +119,11 @@ async def websocket_endpoint(
             # 메시지 저장 로직: MessageRepository에 사용자 응답 저장
             message_repo.save_message(star_id=star_id, sender="user", content=current_user_input)
 
+            # 메시지 저장 로직: MessageRepository에 gpt 응답 저장
+            message_repo.save_message(star_id=star_id, sender="assistant", content=current_gpt_response)
+
+            # GptMessageRepository에 사용자 응답 저장
+            gpt_message_repo.save_gpt_message(star_id=star_id, sender="user", content=current_user_input)
             # 메시지 저장 로직: MessageRepository에 gpt 응답 저장
             message_repo.save_message(star_id=star_id, sender="assistant", content=current_gpt_response)
 

@@ -76,7 +76,7 @@ class MessageRepository:
         message = {
             "sender": sender,
             "content": content,
-            "created_at": datetime.datetime.utcnow()
+            "created_at": datetime.datetime.utcnow() + datetime.timedelta(hours=9)
         }
         
         # 해당 star_id의 문서를 찾고, 메시지 배열에 새 메시지를 추가
