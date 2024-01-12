@@ -25,11 +25,3 @@ def get_db():
 def get_mongo():
     db = mongo_client['chat_database']
     return db
-
-def get_messages_collection():
-    db = get_mongo()
-    return db['messages']
-
-def get_gpt_messages_collection():
-    db = get_mongo()
-    return db['gptmessages']

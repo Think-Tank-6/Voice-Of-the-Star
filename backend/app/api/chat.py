@@ -1,10 +1,13 @@
 import datetime
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Depends, Header
-from database.repository import MessageRepository, GptMessageRepository
-from security import get_access_token
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Depends
+from database.repository import MessageRepository, GptMessageRepository, UserRepository
+from service.auth import HTTPException
 import json
 import logging
 from service.ai_serving import ChatGeneration, DetectCrime
+from security import get_access_token
+from database.orm import User
+from service.auth import AuthService
 
 # 로거 설정
 logger = logging.getLogger(__name__)
@@ -13,70 +16,55 @@ logging.basicConfig(level=logging.DEBUG,
 
 router = APIRouter(prefix="/chat")
 
-async def get_current_user_id(authorization: str = Header(None)):
-    """
-    Authorization 헤더에서 사용자 ID를 추출합니다.
-    """
-    if authorization:
-        user_id = get_access_token(authorization)
-        return user_id
-    else:
-        return None
+# 유저 검증 및 조회(공통)
+def get_authenticated_user(
+    access_token: str = Depends(get_access_token),
+    auth_service: AuthService = Depends(),
+    user_repo: UserRepository = Depends(),
+) -> User:
+    return auth_service.verify_user(access_token=access_token, user_repo=user_repo)
+
 
 class ConnectionManager:
     def __init__(self):
         self.active_connections = {}
 
-    async def connect(self, websocket: WebSocket, user_id: str):
-        await websocket.accept()
-        self.active_connections[user_id] = websocket
+    async def connect(self, websocket: WebSocket, star_id: int):
+        self.active_connections[star_id] = websocket
 
-    def disconnect(self, user_id: str):
-        del self.active_connections[user_id]
+    def disconnect(self, star_id: str):
+        del self.active_connections[star_id]
 
-    async def send_message(self, message: dict, user_id: str):
-        if user_id in self.active_connections:
-            await self.active_connections[user_id].send_text(json.dumps(message))
+    async def send_message(self, message: dict, star_id: str):
+        if star_id in self.active_connections:
+            await self.active_connections[star_id].send_text(json.dumps(message))
 
 manager = ConnectionManager()
-
-# Create an instance of ChatRepository
 message_repo = MessageRepository()
 gpt_message_repo = GptMessageRepository()
-
-@router.get("/{star_id}/messages")
-async def get_chat_messages(star_id: int, limit: int = 50):
-    """
-    특정 채팅방의 최근 채팅 메시지를 가져옵니다.
-    :param star_id: 채팅방 ID
-    :param limit: 반환할 메시지의 최대 개수
-    :return: 채팅 메시지 리스트
-    """
-    try:
-        messages = message_repo.get_messages(star_id, limit)
-        return messages
-    except Exception as e:
-        logger.error(f"Error fetching messages for star {star_id}: {e}")
-        raise HTTPException(status_code=500, detail="Error fetching messages")
+# user_repo = UserRepository()
+# user = Depends(get_authenticated_user)
 
 @router.websocket("/{star_id}")
-async def websocket_endpoint(websocket: WebSocket, star_id: int):
-    logger.debug(f"WebSocket connection opened for star: {star_id}")
+async def websocket_endpoint(
+        websocket: WebSocket, 
+        star_id: int
+    ):
+
+    #p_data 가져오기
+    p_data = gpt_message_repo.get_p_data(star_id)
+
+    # 지금까지 저장된 대화 내역 가져오기
+    # gpt_message_list = gpt_message_repo.get_gpt_messages(user_id)
+    gpt_message_list = []
+    # user_message_list = message_repo.get_messages(star_id, len(message_data))
+    user_message_list = []
+    
+    # 연결 수락 및 처리
     await websocket.accept()
+    await manager.connect(websocket, star_id)
 
-    # 초기 메시지를 기다립니다. 이 메시지는 사용자 ID와 star_id를 포함해야 합니다.
-    initial_data = await websocket.receive_text()
     try:
-        initial_message = json.loads(initial_data)
-        user_id = initial_message.get("user_id")
-        star_id = initial_message.get("star_id")  # star_id 추가
-        if not user_id or not star_id:
-            logger.error("No user_id or star_id provided in initial message")
-            await websocket.close()
-            return
-
-        await manager.connect(websocket, user_id)
-
         while True:
             data = await websocket.receive_text()
             try:
@@ -85,47 +73,42 @@ async def websocket_endpoint(websocket: WebSocket, star_id: int):
                 if not all(k in message_data for k in ("content",)):
                     logger.error("Invalid message format")
                     continue
-
-                # 메시지 저장 로직: MessageRepository에 저장
-                message_repo.save_message(
-                    star_id=star_id,
-                    sender=user_id,
-                    content=message_data["content"]
-                )
-
-                # GptMessageRepository에 응답 저장
-                gpt_message_repo.save_gpt_message(
-                    star_id=star_id,
-                    sender="assistant",  # GPT로부터의 응답을 표시
-                    content=gpt_response
-                )
                 
+                # user의 메시지
+                user_input = message_data['content']
+
                 # GPT 모델을 사용하여 응답 생성
-                # 아래 함수 input 수정 필요
-                gpt_response, messages = generate_gpt_response(message_data["content"])
+                gpt_response, gpt_message_list = generate_gpt_response(user_input, p_data, gpt_message_list)
+                
+                user_message_list.append({"role":"user","content":user_input})
+                user_message_list.append({"role":"assistant","content":gpt_response})
 
-                # 메시지와 GPT 응답에 star_id와 created_at를 추가합니다.
-                message_data['star_id'] = star_id
-                message_data['created_at'] = datetime.datetime.utcnow().isoformat()
-                gpt_message = {
-                    "star_id": star_id,
-                    "sender": "GPT",
-                    "content": gpt_response,
-                    "created_at": datetime.datetime.utcnow().isoformat()
-                }
-
-                # 클라이언트에게 사용자 메시지와 GPT 응답을 전송합니다.
-                await manager.send_message(message_data, user_id)
-                await manager.send_message(gpt_message, user_id)
+                # 클라이언트에게 사용자 메시지와 GPT 응답 전송
+                await manager.send_message(message_data, star_id)
+                await manager.send_message(gpt_response, star_id)
 
             except json.JSONDecodeError:
                 logger.error("Error decoding message")
     except WebSocketDisconnect:
-        logger.debug(f"WebSocket disconnected for user: {user_id}")
-        manager.disconnect(user_id)
+        logger.debug(f"WebSocket disconnected for user: {star_id}")
+        
+        # 메시지 저장 로직: MessageRepository에 사용자 응답 저장
+        message_repo.save_message(star_id=star_id, sender="user", content=user_input)
+
+        # 메시지 저장 로직: MessageRepository에 gpt 응답 저장
+        message_repo.save_message(star_id=star_id, sender="assistant", content=gpt_response)
+        
+        # GptMessageRepository에 사용자 응답 저장
+        gpt_message_repo.save_gpt_message(star_id=star_id, sender="user", content=user_input)
+
+        # GptMessageRepository에 gpt 응답 저장
+        gpt_message_repo.save_gpt_message(star_id=star_id, sender="assistant", content=gpt_response)
+        
+        manager.disconnect(star_id)
     except Exception as e:
         logger.error(f"Error: {e}")
-
+        await websocket.close(code=1011) 
+        
 def generate_gpt_response(user_input,p_data, messages):
     # GPT 모델을 사용하여 응답을 생성하는 로직 구현
     chat_generation = ChatGeneration(user_input,p_data, messages)
