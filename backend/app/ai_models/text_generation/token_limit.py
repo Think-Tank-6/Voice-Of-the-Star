@@ -27,7 +27,6 @@ def load_text_from_bottom(text, max_token, gpt_version):
         new_text = line + '\n'
         tok = token_count(new_text, gpt_version)
         token_sum += tok
-        print(token_sum)
 
         if token_sum > max_token:
             break
