@@ -16,8 +16,7 @@ def prepare_chat(text):
     messages = [{'role': 'system', 'content': text}]
     return messages
 
-def get_response(client, user_input, messages):
-    messages.append({'role': 'user', 'content': user_input})
+def get_response(client, messages):
     
     response = client.chat.completions.create(
         model="gpt-4-0613",
@@ -27,6 +26,5 @@ def get_response(client, user_input, messages):
     )
 
     assistant_response = response.choices[0].message.content
-    messages.append({'role': 'assistant', 'content': assistant_response})
-
-    return assistant_response, messages
+    
+    return assistant_response

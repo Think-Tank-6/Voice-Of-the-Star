@@ -95,18 +95,18 @@ class ChatGeneration:
     API_KEY = os.getenv("GPT_API_KEY")
     client = OpenAI(api_key=API_KEY)
 
-    def __init__(self,user_input,p_data, messages):
-        self.user_input = user_input
-        self.p_data = p_data
+    def __init__(self, p_data, messages):
         self.messages = messages
 
-    def get_gpt_answer(self) -> str:
-        
-        # GPT에 대화 히스토리 넣고 답변 받기
-        messages = prepare_chat(self.p_data)
-        gpt_answer, messages = get_response(self.client,self.user_input, self.messages)
-        
-        return gpt_answer, messages
+        # 추후 p_data 연결
+        self.messages.insert(0,{'role': 'system', 'content': "이 부분은 나중에 수정을 꼭 해야해요"})
+
+    def get_gpt_answer(self,user_input):
+        self.messages.append({'role': 'user', 'content': user_input})
+        gpt_answer = get_response(self.client,self.messages)
+        self.messages.append({'role': 'assistant', 'content': gpt_answer})
+
+        return gpt_answer, self.messages
     
 
 class DetectCrime:
