@@ -6,7 +6,6 @@ from schema.request import CreateStarRequest
 
 Base = declarative_base()
 
-
 # 별(고인)
 class Star(Base):
     __tablename__ = "star"
@@ -56,7 +55,7 @@ class Star(Base):
         self.gpt_cond_latent_data = gpt_cond_latent_npy
         self.speaker_embedding_data = speaker_embedding_npy
         return self
-    
+        
 
 # 회원
 class User(Base): 

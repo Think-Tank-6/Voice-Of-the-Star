@@ -5,7 +5,6 @@ from sqlalchemy.orm import Session
 from database.connection import get_db, get_mongo
 import datetime
 from database.orm import Star, User, Admin
-from pymongo import MongoClient
 
 
 class StarRepository:

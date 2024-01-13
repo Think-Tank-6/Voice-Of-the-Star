@@ -22,8 +22,9 @@ import numpy as np
 import pickle
 
 # Voice cloning Model Load
-VOICE_CLONING_MODEL_PATH = os.getenv("VOICE_CLONING_MODEL_PATH")
-voice_cloning_model = load_model(VOICE_CLONING_MODEL_PATH)
+# VOICE_CLONING_MODEL_PATH = os.getenv("VOICE_CLONING_MODEL_PATH")
+# voice_cloning_model = load_model(VOICE_CLONING_MODEL_PATH)
+voice_cloning_model = None
 
 
 ### Load GPT ###
@@ -63,7 +64,6 @@ class PromptGeneration:
         chat_prompt_input_data = merge_prompt_input(characteristics,system_input,star_text_4k)
         
         return chat_prompt_input_data
-
 
     
 class SpeakerIdentification:
@@ -105,6 +105,7 @@ class VoiceCloning:
 
         COMBINED_STAR_VOICE_FILE_PATH = os.getenv("COMBINED_STAR_VOICE_FILE_PATH")
         combined_star_voice_file = COMBINED_STAR_VOICE_FILE_PATH + f"/{star_id}_combined_voice_file.wav"
+
         gpt_cond_latent, speaker_embedding = create_star_vector(
             voice_cloning_model, 
             combined_star_voice_file

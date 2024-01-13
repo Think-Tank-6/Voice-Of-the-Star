@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+from database.connection import engine
+from database.orm import Base
 import os
 
 from api import star, user, chat, admin
@@ -10,6 +12,8 @@ app = FastAPI()
 load_dotenv()
 origins_str = os.getenv("ORIGIN", "")
 origins = origins_str.split(",") if origins_str else []
+
+Base.metadata.create_all(bind=engine)
 
 app.add_middleware(
     CORSMiddleware,
