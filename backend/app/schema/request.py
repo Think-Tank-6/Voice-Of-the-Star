@@ -51,4 +51,6 @@ class AdminLoginRequest(BaseModel):
     admin_id: str
     password: str
     
-    
+
+class PlayVoiceRequest(BaseModel):
+    text: str
