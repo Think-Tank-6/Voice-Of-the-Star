@@ -1,3 +1,4 @@
+import numpy as np
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, LargeBinary, String, Date, Text, func
 from sqlalchemy.orm import declarative_base, relationship
 
@@ -45,6 +46,15 @@ class Star(Base):
         self.relationship = request.relationship
         self.persona = request.persona
         self.image = request.image
+        return self
+    
+    def insert_npy(
+            self, 
+            gpt_cond_latent_npy: np.ndarray, 
+            speaker_embedding_npy: np.ndarray
+        ):
+        self.gpt_cond_latent_data = gpt_cond_latent_npy
+        self.speaker_embedding_data = speaker_embedding_npy
         return self
     
 

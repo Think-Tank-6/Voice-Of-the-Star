@@ -1,7 +1,10 @@
 
 from dotenv import load_dotenv
+from fastapi import HTTPException
 from openai import OpenAI
 import os
+
+from ai_models.voice_cloning.xtts import create_star_vector, load_model
 
 load_dotenv()
 
@@ -15,6 +18,12 @@ from ai_models.speaker_identification.postprocessing import speaker_diarization
 import json
 from io import BytesIO
 from pydub import AudioSegment
+
+# Voice cloning Model Load
+# VOICE_CLONING_MODEL_PATH = os.getenv("VOICE_CLONING_MODEL_PATH")
+# voice_cloning_model = load_model(VOICE_CLONING_MODEL_PATH)
+voice_cloning_model = None
+
 
 ### Load GPT ###
 class PromptGeneration:
@@ -88,7 +97,36 @@ class SpeakerIdentification:
             combined_star_voice_file += audio_segment[int(v['start']):int(v['end'])]
         combined_star_voice_file.export(f"{star_id}_combined_voice_file.wav", format="wav")
 
-    
+
+class VoiceCloning:
+
+    def get_star_voice_vector(self, star_id: int):
+
+        COMBINED_STAR_VOICE_FILE_PATH = os.getenv("COMBINED_STAR_VOICE_FILE_PATH")
+        combined_star_voice_file = COMBINED_STAR_VOICE_FILE_PATH + f"/{star_id}_combined_voice_file.wav"
+
+        gpt_cond_latent, speaker_embedding = create_star_vector(
+            voice_cloning_model, 
+            combined_star_voice_file
+        )
+
+        try:
+            if not os.path.exists(combined_star_voice_file):
+                raise HTTPException(status_code=404, detail="File not found")
+            
+            os.remove(combined_star_voice_file)
+                
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error deleting file: {str(e)}")
+        
+        print("1-------------------gpt_cond_latent.shape : ", gpt_cond_latent.shape)
+        print("1-------------------speaker_embedding.shape : ", speaker_embedding.shape)
+
+        # PyTorch tensor를 NumPy 배열로 변환
+        gpt_cond_latent_npy = gpt_cond_latent.numpy()
+        speaker_embedding_npy = speaker_embedding.numpy()
+
+        return gpt_cond_latent_npy, speaker_embedding_npy
 
 
 class ChatGeneration:

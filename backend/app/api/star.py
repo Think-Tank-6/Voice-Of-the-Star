@@ -1,4 +1,5 @@
 from datetime import date
+import os
 from typing import List, Optional
 from fastapi import Depends, File, Form, HTTPException, APIRouter, UploadFile
 from service.auth import AuthService
@@ -8,8 +9,7 @@ from database.orm import Star, User
 from database.repository import UserRepository, StarRepository, MessageRepository, GptMessageRepository
 from schema.request import CreateStarRequest
 from schema.response import StarListSchema, StarSchema
-from service.ai_serving import PromptGeneration
-from service.ai_serving import SpeakerIdentification
+from service.ai_serving import PromptGeneration, SpeakerIdentification, VoiceCloning
 
 from io import BytesIO
 
@@ -61,9 +61,9 @@ def get_star_handler(
     
     star: Star | None = star_repo.get_star_by_star_id(star_id=star_id, user_id=user.user_id)
 
-    if star:
-        return StarSchema.from_orm(star)
-    raise HTTPException(status_code=404, detail="Star Not Found")
+    if not star:
+        raise HTTPException(status_code=404, detail="Star Not Found")
+    return StarSchema.from_orm(star)
 
 
 # star 생성
@@ -134,27 +134,35 @@ def upload_voice_handler(
     return extracted_voice_info
 
 # star 생성(보이스 선택)
-@router.post("/voice-select", status_code=201)
+@router.post("/voice-select/{star_id}", status_code=201)
 def upload_voice_handler(
-    selected_speaker_id: str,
-    speech_list: dict,
-    original_voice_byte_file,
     star_id: int,
-    # user: User = Depends(get_authenticated_user),  
+    # selected_speaker_id: str = Form(...),
+    # speech_list: dict = Form(...),
+    # original_voice_byte_file: UploadFile = File(...),
+    user: User = Depends(get_authenticated_user),
+    star_repo: StarRepository = Depends(),
 ) -> StarSchema:
     
-    # Speaker identification 생성자 변경 필요
-    speaker_identification = SpeakerIdentification()
-    speaker_identification.save_star_voice(selected_speaker_id, speech_list, original_voice_byte_file)
+    star: Star | None = star_repo.get_star_by_star_id(star_id=star_id, user_id=user.user_id)
 
-    # voice cloning 에서 필요한 embedding 저장 (성현님)
-    # 1. load model
-    # 2. create start vector(local path로 음성파일 불러오기)
-    # 3. delete combined_star_voice_file
-    # 4. embedding, latent 저장
+    # speaker_identification = SpeakerIdentification()
+    # speaker_identification.save_star_voice(selected_speaker_id, speech_list, original_voice_byte_file)
 
+    voice_cloning = VoiceCloning()
+    gpt_cond_latent_npy, speaker_embedding_npy = voice_cloning.get_star_voice_vector(
+        star_id=star_id
+    )
+    
+    star: Star = star.insert_npy(
+        gpt_cond_latent_npy=gpt_cond_latent_npy, 
+        speaker_embedding_npy=speaker_embedding_npy
+    )
 
-    return {"message":"voice select 페이지"}
+    # DB save
+    star: Star = star_repo.update_star(star=star)
+
+    return StarSchema.from_orm(star)
 
 
 # star 수정
@@ -167,7 +175,6 @@ def update_star_handler(
 ) -> StarSchema:
     
     star: Star | None = star_repo.get_star_by_star_id(star_id=star_id, user_id=user.user_id)
-
     if star:
         star: Star = star.update(request=request)
         star: Star = star_repo.update_star(star=star)

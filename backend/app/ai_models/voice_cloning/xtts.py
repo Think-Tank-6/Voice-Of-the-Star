@@ -20,10 +20,11 @@ def load_model(model_name):
         config,
         checkpoint_path=os.path.join(model_path, "model.pth"),
         vocab_path=os.path.join(model_path, "vocab.json"),
+        speaker_file_path =os.path.join(model_path, "speakers_xtts.json"),
         eval=True,
         use_deepspeed=False,
     )
-    model.cuda()
+    # model.cuda()
     return model
 
 
