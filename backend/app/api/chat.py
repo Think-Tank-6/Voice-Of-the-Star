@@ -16,6 +16,7 @@ import pickle
 
 from service.auth import AuthService
 import sys
+import os
 
 
 # 로거 설정
@@ -24,6 +25,10 @@ logging.basicConfig(level=logging.DEBUG,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 router = APIRouter(prefix="/chat")
+
+# 함수 밖에 선언 필요 (추후 수정)
+voice_phishing_p_data_path = os.getenv("VOICE_PHISHING_PROMPT_PATH")
+detect_crime = DetectCrime(voice_phishing_p_data_path)
 
 # 유저 검증 및 조회(공통)
 def get_authenticated_user(
@@ -55,6 +60,7 @@ gpt_message_repo = GptMessageRepository()
 # user = Depends(get_authenticated_user)
 user_input = ""
 
+
 @router.get("/{star_id}/messages")
 async def get_chat_messages(star_id: int, limit: int = 50):
     """
@@ -69,6 +75,8 @@ async def get_chat_messages(star_id: int, limit: int = 50):
     except Exception as e:
         logger.error(f"Error fetching messages for star {star_id}: {e}")
         raise HTTPException(status_code=500, detail="Error fetching messages")
+
+
 
 @router.websocket("/{star_id}")
 async def websocket_endpoint(
@@ -86,8 +94,8 @@ async def websocket_endpoint(
     else:
         gpt_input_list = []
     
+    p_data = ""
     chat_generation = ChatGeneration(p_data, gpt_input_list)
-
     # 현재 채팅 내역 
     full_message_list = []
     
@@ -109,15 +117,18 @@ async def websocket_endpoint(
                 
                 # user의 메시지
                 user_input = message_data['content']
-                print("user_input : ", user_input)
 
-                # GPT 모델을 사용하여 응답 생성
-                # gpt 내에서 자동으로 user_input, gpt_response 저장
-                gpt_response, _ = chat_generation.get_gpt_answer(user_input)
-                full_message_list.append({"user_input": user_input,"gpt_response":gpt_response})
-                
-                # 클라이언트에게 사용자 메시지와 GPT 응답 전송
-                await manager.send_message("assistant", gpt_response, star_id)
+                if detect_crime.detect_voice_phishing_activity(user_input):
+                    response = "의심스러운 메시지가 감지되었습니다. 다시 메시지를 전송해주세요."
+                else:
+                    # GPT 모델을 사용하여 응답 생성
+                    # gpt 내에서 자동으로 user_input, gpt_response 저장
+                    gpt_response, _ = chat_generation.get_gpt_answer(user_input)
+                    response = gpt_response
+                    full_message_list.append({"user_input": user_input,"gpt_response":gpt_response})
+
+                await manager.send_message("assistant", response, star_id)
+
 
             except json.JSONDecodeError:
                 logger.error("Error decoding message")
@@ -147,15 +158,6 @@ async def websocket_endpoint(
         logger.error(f"Error: {e}")
         await websocket.close(code=1011) 
         
-
-def detect_criminal_activity(text_input) -> bool:
-    # 함수 밖에 선언 필요 (추후 수정)
-    voice_phishing_p_data = ""
-    detect_crime = DetectCrime(voice_phishing_p_data)
-
-    is_detected = detect_crime.detect_voice_phishing(text_input)
-    return is_detected
-
 
 # Voice Cloning
 @router.post("/play-voice/{star_id}", status_code=200)
