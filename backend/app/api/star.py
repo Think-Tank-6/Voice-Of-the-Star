@@ -118,8 +118,6 @@ def upload_voice_handler(
     original_voice_file: UploadFile = File(...),
     user: User = Depends(get_authenticated_user)
     ):
-    print("original_voice_file : ", original_voice_file)
-    print("type original_voice_file : ", type(original_voice_file))
     speaker_identification = SpeakerIdentification()
     speaker_num, full_speech_list, speaker_sample_list = speaker_identification.get_speaker_samples(original_voice_file)
     
