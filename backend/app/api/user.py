@@ -4,7 +4,7 @@ from schema.response import JWTResponse, UserSchema
 from database.repository import UserRepository
 from database.orm import User
 from service.auth import AuthService
-from schema.request import EmailCheckRequest, JoinRequest, LoginRequest, ModifyPasswordRequest
+from schema.request import EmailCheckRequest, JoinRequest, LoginRequest, ModifyDeleteRequest, ModifyPasswordRequest
 from starlette.status import HTTP_400_BAD_REQUEST
 import requests
 from pydantic import BaseModel
@@ -84,6 +84,9 @@ def user_login_handler(
     )
     if not verified:
         raise HTTPException(status_code=401, detail="Not Authorized")
+
+    if user.user_status != 1:
+        raise HTTPException(status_code=403, detail="탈퇴한 회원입니다.")
     
     access_token: str = auth_service.create_jwt(user_id=user.user_id)
     return JWTResponse(access_token=access_token)
@@ -127,7 +130,6 @@ def kakao_login_handler(
             name=name,
             phone=phone_number,
             birth=birth,
-            image=None,
             policy_agreement_flag=True
         )
         saved_user: User = auth_repo.save_user(user=new_user)
@@ -192,4 +194,29 @@ def modify_user_password_handler(
         hashed_password=hashed_password,
     )
     user: User = user_repo.save_user(user=user)
+    return UserSchema.from_orm(user)
+
+@mypage_router.patch("/modify-delete", status_code=201)
+def modify_user_delete_handler(
+    request: ModifyDeleteRequest,
+    user: User = Depends(get_authenticated_user),
+    auth_service: AuthService = Depends(),
+    user_repo: UserRepository = Depends()
+):
+    # 현재 비밀번호 확인
+    verified: bool = auth_service.verify_password(
+        plain_password=request.current_password,
+        hash_password=user.password,
+    )
+    if not verified:
+        raise HTTPException(status_code=401, detail="비밀번호가 다릅니다.")
+
+    print("user_status:", user.user_status)
+    # 사용자 상태를 업데이트 (예: 2로 변경)
+    user.update_delete(new_status=2)
+
+    # 변경된 사용자 정보 저장
+    print("Updated user_status:", user.user_status)
+    user = user_repo.save_user(user=user) 
+    
     return UserSchema.from_orm(user)

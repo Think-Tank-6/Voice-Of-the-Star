@@ -39,6 +39,10 @@ class ModifyPasswordRequest(BaseModel):
     current_password: str
     new_password: str
 
+class ModifyDeleteRequest(BaseModel):
+    current_password: str
+    user_status: str
+
 
 class AdminJoinRequest(BaseModel):
     admin_id: str
