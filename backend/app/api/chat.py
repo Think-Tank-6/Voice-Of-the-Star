@@ -33,7 +33,7 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket, star_id: int):
         self.active_connections[star_id] = websocket
 
-    def disconnect(self, star_id: str):
+    def disconnect(self, star_id: int):
         del self.active_connections[star_id]
 
     async def send_message(self, sender: str, message: str, star_id: int):

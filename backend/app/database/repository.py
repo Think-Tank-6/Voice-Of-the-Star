@@ -88,11 +88,13 @@ class MessageRepository:
         return result
 
     def get_last_message(self, star_id):
-        last_message = self.messages_collection.find_one(
+        result = self.messages_collection.find_one(
             {"star_id": star_id},
-            sort=[("created_at", -1)]
+            {"messages": {"$slice": -1}}  # 마지막 메시지만 가져오기
         )
-        return last_message
+        if result and 'messages' in result and len(result['messages']) > 0:
+            return result['messages'][0]  # 마지막 메시지 반환
+        return None
     
     def get_messages(self, star_id: int, limit: int) -> List[dict]:
         messages = self.messages_collection.aggregate([

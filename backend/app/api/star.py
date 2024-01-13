@@ -44,10 +44,11 @@ def get_stars_handler(
 
 @router.get("/{star_id}/last", status_code=200)
 def get_last_message(
-    star_id: str, 
+    star_id: int, 
     chat_repo: MessageRepository = Depends()
 ):
     last_message = chat_repo.get_last_message(star_id)
+    print("last_message : ", last_message)
     return last_message
 
 # 단일 star 조회
