@@ -103,6 +103,10 @@ class User(Base):
     def update_password(self, hashed_password: str) -> "User":
         self.password = hashed_password
         return self
+    
+    def update_delete(self, new_status: int) -> "User":
+        self.user_status = new_status
+        return self
 
 #관리자
 class Admin(Base): 
