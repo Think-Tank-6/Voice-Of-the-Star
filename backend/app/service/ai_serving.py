@@ -18,11 +18,12 @@ from ai_models.speaker_identification.postprocessing import speaker_diarization
 import json
 from io import BytesIO
 from pydub import AudioSegment
+import numpy as np
+import pickle
 
 # Voice cloning Model Load
-# VOICE_CLONING_MODEL_PATH = os.getenv("VOICE_CLONING_MODEL_PATH")
-# voice_cloning_model = load_model(VOICE_CLONING_MODEL_PATH)
-voice_cloning_model = None
+VOICE_CLONING_MODEL_PATH = os.getenv("VOICE_CLONING_MODEL_PATH")
+voice_cloning_model = load_model(VOICE_CLONING_MODEL_PATH)
 
 
 ### Load GPT ###
@@ -104,7 +105,6 @@ class VoiceCloning:
 
         COMBINED_STAR_VOICE_FILE_PATH = os.getenv("COMBINED_STAR_VOICE_FILE_PATH")
         combined_star_voice_file = COMBINED_STAR_VOICE_FILE_PATH + f"/{star_id}_combined_voice_file.wav"
-
         gpt_cond_latent, speaker_embedding = create_star_vector(
             voice_cloning_model, 
             combined_star_voice_file
@@ -119,14 +119,10 @@ class VoiceCloning:
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error deleting file: {str(e)}")
         
-        print("1-------------------gpt_cond_latent.shape : ", gpt_cond_latent.shape)
-        print("1-------------------speaker_embedding.shape : ", speaker_embedding.shape)
-
-        # PyTorch tensor를 NumPy 배열로 변환
-        gpt_cond_latent_npy = gpt_cond_latent.numpy()
-        speaker_embedding_npy = speaker_embedding.numpy()
-
-        return gpt_cond_latent_npy, speaker_embedding_npy
+        gpt_cond_latent_pkl = pickle.dumps(gpt_cond_latent)
+        speaker_embedding_pkl = pickle.dumps(speaker_embedding)
+        
+        return gpt_cond_latent_pkl, speaker_embedding_pkl
 
 
 class ChatGeneration:

@@ -11,6 +11,7 @@ import logging
 from service.ai_serving import voice_cloning_model, ChatGeneration, DetectCrime
 from security import get_access_token
 from database.orm import Star, User
+import pickle
 
 # 로거 설정
 logger = logging.getLogger(__name__)
@@ -146,63 +147,19 @@ async def play_voice_handler(
     if not star:
         raise HTTPException(status_code=404, detail="Star Not Found")
     
-    # Star 데이터베이스의 gpt_cond_latent, speaker_embedding (.npy 파일) 조회
+    # Star 데이터베이스의 gpt_cond_latent, speaker_embedding (.pkl 파일) 조회
     gpt_cond_latent_data = star.gpt_cond_latent_data
     speaker_embedding_data = star.speaker_embedding_data
-    print("gpt_cond_latent_data : ", type(gpt_cond_latent_data))
-    print("speaker_embedding_data : ", type(speaker_embedding_data))
-
-    # numpy 배열로 변환
-    gpt_cond_latent_data = np.frombuffer(gpt_cond_latent_data, dtype=np.float32)
-    speaker_embedding_data = np.frombuffer(speaker_embedding_data, dtype=np.float32)
-    # print("gpt_cond_latent_data.shape() : ", gpt_cond_latent_data.shape())
-    # print("speaker_embedding_data.shape() : ", gpt_cond_latent_data.shape())
-
-    # PyTorch tensor 생성 
-    gpt_cond_latent = torch.Tensor(gpt_cond_latent_data)
-    speaker_embedding = torch.Tensor(speaker_embedding_data)
-
-    print("gpt_cond_latent : ", type(gpt_cond_latent))
-    print("speaker_embedding : ", type(speaker_embedding))
-    print("2----------------gpt_cond_latent.shape : ", gpt_cond_latent.shape)
-    print("2----------------speaker_embedding.shape : ", speaker_embedding.shape)
-
+    
+    gpt_cond_latent = pickle.loads(gpt_cond_latent_data)
+    speaker_embedding = pickle.loads(speaker_embedding_data)
+   
     output = inference(
         voice_cloning_model,
         text, 
         gpt_cond_latent, 
         speaker_embedding
     )
-    print("out : ", output)
-
-    # gpt_cond_latent_data = np.load(gpt_cond_latent_data, allow_pickle=True)
-    # gpt_cond_latent_data = np.load(speaker_embedding_data, allow_pickle=True)
-
-    # if isinstance(gpt_cond_latent_data, bytes):
-    # gpt_cond_latent_data = np.frombuffer(gpt_cond_latent_data, dtype=np.float32)
-
-    # gpt_cond_latent_npy = np.load(gpt_cond_latent_data)
-    # speaker_embedding_npy = np.load(speaker_embedding_data)
-    # gpt_cond_latent = torch.from_numpy(gpt_cond_latent_data)
-    # speaker_embedding = torch.from_numpy(speaker_embedding_data)
-
-
-
-    # if gpt_cond_latent_data == None and speaker_embedding_data == None:
-        
-    # np.save("gpt_cond_latent.npy", gpt_cond_latent_npy)
-    # np.save("speaker_embedding.npy", speaker_embedding_npy)
-
-    # star: Star = star.insert_npy(
-    #     gpt_cond_latent_npy=gpt_cond_latent_npy, 
-    #     speaker_embedding_npy=speaker_embedding_npy
-    # )
-    
-    # DB save
-    # star: Star = star_repo.update_star(star=star)
-
-    # output = inference(AppConfig.model, text, gpt_cond_latent, speaker_embedding)
-    # print("out : ", output)
 
     # 오디오 생성
     output_np = output.numpy()
