@@ -97,9 +97,10 @@ class ChatGeneration:
 
     def __init__(self, p_data, messages):
         self.messages = messages
+        self.p_data = p_data
 
         # 추후 p_data 연결
-        self.messages.insert(0,{'role': 'system', 'content': "이 부분은 나중에 수정을 꼭 해야해요"})
+        self.messages.insert(0,{'role': 'system', 'content': p_data})
 
     def get_gpt_answer(self,user_input):
         self.messages.append({'role': 'user', 'content': user_input})

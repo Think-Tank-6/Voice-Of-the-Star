@@ -118,11 +118,17 @@ class GptMessageRepository:
         return result
 
     def get_gpt_message(self, star_id):
-       # 'gpt_messages' 컬렉션에서 데이터 검색
-        return self.gpt_messages_collection.find_one({"star_id": star_id})
+        # 'gpt_messages' 컬렉션에서 데이터 검색
+        document = self.gpt_messages_collection.find_one({"star_id": star_id})
+        if document and "gpt_messages" in document:
+            return document["gpt_messages"]
+        return []    
     
     def get_p_data(self, star_id):
-        return self.gpt_messages_collection.find_one({"star_id" : star_id})
+        document = self.gpt_messages_collection.find_one({"star_id": star_id})
+        if document and "p_data" in document:
+            return document["p_data"]
+        return None
     
     def save_gpt_message(self, star_id, sender, content):
         gpt_message = {
@@ -133,7 +139,7 @@ class GptMessageRepository:
         # 해당 star_id의 문서를 찾고, 메시지 배열에 새 메시지를 추가
         result = self.gpt_messages_collection.update_one(
             {"star_id": star_id},
-            {"$push": {"messages": gpt_message}},
+            {"$push": {"gpt_messages": gpt_message}},
             upsert=True
         )
         return result
