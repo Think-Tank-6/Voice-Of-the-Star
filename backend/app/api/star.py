@@ -137,28 +137,28 @@ def upload_voice_handler(
 @router.post("/voice-select/{star_id}", status_code=201)
 def upload_voice_handler(
     star_id: int,
-    # selected_speaker_id: str = Form(...),
-    # speech_list: dict = Form(...),
-    # original_voice_byte_file: UploadFile = File(...),
+    selected_speaker_id: str = Form(...),
+    speech_list: dict = Form(...),
+    original_voice_byte_file: UploadFile = File(...),
     user: User = Depends(get_authenticated_user),
     star_repo: StarRepository = Depends(),
 ) -> StarSchema:
     
     star: Star | None = star_repo.get_star_by_star_id(star_id=star_id, user_id=user.user_id)
 
-    # speaker_identification = SpeakerIdentification()
-    # speaker_identification.save_star_voice(selected_speaker_id, speech_list, original_voice_byte_file)
+    speaker_identification = SpeakerIdentification()
+    speaker_identification.save_star_voice(selected_speaker_id, speech_list, original_voice_byte_file)
 
     voice_cloning = VoiceCloning()
-    gpt_cond_latent_npy, speaker_embedding_npy = voice_cloning.get_star_voice_vector(
+    gpt_cond_latent_pkl, speaker_embedding_pkl = voice_cloning.get_star_voice_vector(
         star_id=star_id
     )
     
     star: Star = star.insert_npy(
-        gpt_cond_latent_npy=gpt_cond_latent_npy, 
-        speaker_embedding_npy=speaker_embedding_npy
+        gpt_cond_latent_npy=gpt_cond_latent_pkl, 
+        speaker_embedding_npy=speaker_embedding_pkl
     )
-
+    
     # DB save
     star: Star = star_repo.update_star(star=star)
 
