@@ -11,6 +11,8 @@ import logging
 from service.ai_serving import voice_cloning_model, ChatGeneration, DetectCrime
 from security import get_access_token
 from database.orm import Star, User
+from service.auth import AuthService
+import sys
 
 # 로거 설정
 logger = logging.getLogger(__name__)
@@ -35,18 +37,34 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket, star_id: int):
         self.active_connections[star_id] = websocket
 
-    def disconnect(self, star_id: str):
+    def disconnect(self, star_id: int):
         del self.active_connections[star_id]
 
-    async def send_message(self, message: dict, star_id: str):
-        if star_id in self.active_connections:
-            await self.active_connections[star_id].send_text(json.dumps(message))
+    async def send_message(self, sender: str, message: str, star_id: int):
+        message_to_send = {"sender": sender, "content": message}
+        await self.active_connections[star_id].send_text(json.dumps(message_to_send))
 
 manager = ConnectionManager()
 message_repo = MessageRepository()
 gpt_message_repo = GptMessageRepository()
 # user_repo = UserRepository()
 # user = Depends(get_authenticated_user)
+user_input = ""
+
+@router.get("/{star_id}/messages")
+async def get_chat_messages(star_id: int, limit: int = 50):
+    """
+    특정 채팅방의 최근 채팅 메시지를 가져옵니다.
+    :param star_id: 채팅방 ID
+    :param limit: 반환할 메시지의 최대 개수
+    :return: 채팅 메시지 리스트
+    """
+    try:
+        messages = message_repo.get_messages(star_id, limit)
+        return messages
+    except Exception as e:
+        logger.error(f"Error fetching messages for star {star_id}: {e}")
+        raise HTTPException(status_code=500, detail="Error fetching messages")
 
 @router.websocket("/{star_id}")
 async def websocket_endpoint(
@@ -57,11 +75,13 @@ async def websocket_endpoint(
     
     #p_data 가져오기 (수정필요)
     p_data = gpt_message_repo.get_p_data(star_id)
-    if p_data is not None:
+    
+    # p_data가 None이거나 "messages" 키가 없는 경우, 빈 리스트로 처리
+    if p_data is not None and "messages" in p_data:
         gpt_input_list = p_data["messages"]
     else:
         gpt_input_list = []
-
+    
     chat_generation = ChatGeneration(p_data, gpt_input_list)
 
     # 현재 채팅 내역 
@@ -72,8 +92,10 @@ async def websocket_endpoint(
     await manager.connect(websocket, star_id)
 
     try:
+        sys.setrecursionlimit(10000)
         while True:
             data = await websocket.receive_text()
+            print("data : ", data)
             try:
                 message_data = json.loads(data)
                 # 메시지 형식 검증
@@ -83,15 +105,15 @@ async def websocket_endpoint(
                 
                 # user의 메시지
                 user_input = message_data['content']
+                print("user_input : ", user_input)
 
                 # GPT 모델을 사용하여 응답 생성
                 # gpt 내에서 자동으로 user_input, gpt_response 저장
                 gpt_response, _ = chat_generation.get_gpt_answer(user_input)
                 full_message_list.append({"user_input": user_input,"gpt_response":gpt_response})
-
+                
                 # 클라이언트에게 사용자 메시지와 GPT 응답 전송
-                await manager.send_message(message_data, star_id)
-                await manager.send_message(gpt_response, star_id)
+                await manager.send_message("assistant", gpt_response, star_id)
 
             except json.JSONDecodeError:
                 logger.error("Error decoding message")
