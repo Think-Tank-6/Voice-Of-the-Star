@@ -118,7 +118,6 @@ def upload_voice_handler(
     original_voice_file: UploadFile = File(...),
     user: User = Depends(get_authenticated_user)
     ):
-
     speaker_identification = SpeakerIdentification()
     speaker_num, full_speech_list, speaker_sample_list = speaker_identification.get_speaker_samples(original_voice_file)
     
@@ -145,6 +144,9 @@ def upload_voice_handler(
 ) -> StarSchema:
     
     star: Star | None = star_repo.get_star_by_star_id(star_id=star_id, user_id=user.user_id)
+
+    if not star: 
+        raise HTTPException(status_code=404, detail="Star Not Found")
 
     speaker_identification = SpeakerIdentification()
     speaker_identification.save_star_voice(selected_speaker_id, speech_list, original_voice_byte_file)

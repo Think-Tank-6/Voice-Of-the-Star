@@ -12,6 +12,7 @@ class JoinRequest(BaseModel):
     birth: date
     policy_agreement_flag: bool
 
+
 class EmailCheckRequest(BaseModel):
     input_email: str
 

@@ -51,8 +51,6 @@ class ConnectionManager:
 manager = ConnectionManager()
 message_repo = MessageRepository()
 gpt_message_repo = GptMessageRepository()
-# user_repo = UserRepository()
-# user = Depends(get_authenticated_user)
 user_input = ""
 
 @router.get("/{star_id}/messages")

@@ -5,14 +5,11 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-MYSQL_URL = os.getenv("MYSQL_URL")
 
+# MySQL 설정
+MYSQL_URL = os.getenv("MYSQL_URL")
 engine = create_engine(MYSQL_URL)
 SeesionFactory = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-
-# MongoDB 설정
-MONGO_URI = os.getenv('MONGO_URI')
-mongo_client = MongoClient(MONGO_URI)
 
 def get_db():
     session = SeesionFactory()
@@ -20,7 +17,11 @@ def get_db():
         yield session
     finally:
         session.close()
-        
+
+# MongoDB 설정
+MONGO_URI = os.getenv('MONGO_URI')
+mongo_client = MongoClient(MONGO_URI)
+
 # 데이터베이스와 컬렉션 선택
 def get_mongo():
     db = mongo_client['chat_database']
