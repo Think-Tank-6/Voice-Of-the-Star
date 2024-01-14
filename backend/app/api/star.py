@@ -13,7 +13,6 @@ from service.ai_serving import PromptGeneration, SpeakerIdentification, VoiceClo
 
 from io import BytesIO
 
-import os
 import boto3
 from botocore.exceptions import NoCredentialsError
 from dotenv import load_dotenv
@@ -118,7 +117,6 @@ async def create_star_handler(
     # Prompt Generation
     prompt_generator = PromptGeneration(request,original_text)
     chat_prompt_input_data = prompt_generator.create_prompt_input()
-
 
     # DB Save
     star: Star = Star.create(
