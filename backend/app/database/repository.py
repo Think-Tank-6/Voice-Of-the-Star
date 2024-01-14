@@ -36,6 +36,10 @@ class StarRepository:
         self.session.execute(delete(Star).where(Star.star_id == star_id)) 
         self.session.commit()
 
+    def update_star_image_url(self, star_id: int, image_url: str) -> None:
+        self.session.query(Star).filter(Star.star_id == star_id).update({'image': image_url})
+        self.session.commit()
+
 class UserRepository:
     def __init__(self, session: Session = Depends(get_db)):
         self.session = session
