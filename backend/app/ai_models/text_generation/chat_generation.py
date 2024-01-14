@@ -17,7 +17,6 @@ def prepare_chat(text):
     return messages
 
 def get_response(client, messages):
-    
     response = client.chat.completions.create(
         model="gpt-4-0613",
         top_p=0.1,

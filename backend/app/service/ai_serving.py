@@ -14,6 +14,8 @@ from ai_models.text_generation.characteristic_generation import merge_prompt_tex
 from ai_models.text_generation.chat_generation import insert_persona_to_prompt,merge_prompt_input,get_response,prepare_chat
 from ai_models.speaker_identification.clova_speech import ClovaSpeechClient
 from ai_models.speaker_identification.postprocessing import speaker_diarization
+from ai_models.text_generation.crime_prevention import detect_voice_phishing
+
 
 import json
 from io import BytesIO
@@ -149,13 +151,13 @@ class DetectCrime:
     API_KEY = os.getenv("GPT_API_KEY")
     client = OpenAI(api_key=API_KEY)
 
-    def __init__(self,voice_phishing_p_data):
-        self.voice_phishing_p_data = voice_phishing_p_data
+    def __init__(self,voice_phishing_p_data_path):
+        with open(voice_phishing_p_data_path,"r",encoding='utf-8') as f:
+            self.voice_phishing_p_data = f.read()
 
-    def detect_voice_phishing(self,text_input) -> bool:
-        
-        # 함수이름 수정 필요
-        gpt_answer = get_response(self.client,text_input,self.voice_phishing_p_data)
+    def detect_voice_phishing_activity(self,text_input) -> bool:
+
+        gpt_answer = detect_voice_phishing(self.client,text_input,self.voice_phishing_p_data)
 
         if "Yes" in gpt_answer or "yes" in gpt_answer:
             is_detected = True
