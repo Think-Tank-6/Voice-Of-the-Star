@@ -70,7 +70,6 @@ def get_last_message(
     chat_repo: MessageRepository = Depends()
 ):
     last_message = chat_repo.get_last_message(star_id)
-    print("last_message : ", last_message)
     return last_message
 
 # 단일 star 조회
@@ -117,7 +116,6 @@ async def create_star_handler(
     original_text = await original_text_file.read()
     original_text = original_text.decode("utf-8")
 
-    print("111111 original_text: ", original_text)
     # Prompt Generation
     prompt_generator = PromptGeneration(request,original_text)
     chat_prompt_input_data = prompt_generator.create_prompt_input()
@@ -141,11 +139,9 @@ def upload_voice_handler(
     original_voice_file: UploadFile = File(...),
     user: User = Depends(get_authenticated_user)
     ):
-    print("시작했니?")
     speaker_identification = SpeakerIdentification()
     speaker_num, full_speech_list, speaker_sample_list,original_voice_base64 = speaker_identification.get_speaker_samples(original_voice_file)
     
-    print(type(original_voice_base64))
 
     extracted_voice_info = {
         "speaker_num":speaker_num, 
@@ -153,12 +149,6 @@ def upload_voice_handler(
         "speaker_sample_list":speaker_sample_list,
         "original_voice_base64":original_voice_base64
         }
-    
-    # print("speaker_num : ", extracted_voice_info["speaker_num"])
-    print("full_speech_list : ", extracted_voice_info["full_speech_list"])
-    print("full_speech_list length : ", len(extracted_voice_info["full_speech_list"]))
-    # print("speaker_sample_list : ", extracted_voice_info["speaker_sample_list"])
-    # print("original_voice_base64 : ", extracted_voice_info["original_voice_base64"])
     
     return extracted_voice_info
 
@@ -175,34 +165,26 @@ def upload_voice_handler(
     user: User = Depends(get_authenticated_user),
     star_repo: StarRepository = Depends(),
 ) -> StarSchema:
-    print("--------select 진입")
     star: Star | None = star_repo.get_star_by_star_id(star_id=star_id, user_id=user.user_id)
-    print("star : ", star)
     if not star: 
         raise HTTPException(status_code=404, detail="Star Not Found")
     speech_list_dict = json.loads(speech_list)
-    print("1111111111")
    
     speaker_identification = SpeakerIdentification()
     # print("request: ", request)
     speaker_identification.save_star_voice(selected_speaker_id, speech_list_dict, original_voice_base64,star_id)
-    print("333333333333")
     voice_cloning = VoiceCloning()
-    print("44444444444444")
     gpt_cond_latent_pkl, speaker_embedding_pkl = voice_cloning.get_star_voice_vector(
         star_id=star_id
     )
-    print("5555555555555")
     
     # npy 테스트 필요
     star: Star = star.insert_npy(
         gpt_cond_latent_npy=gpt_cond_latent_pkl, 
         speaker_embedding_npy=speaker_embedding_pkl
     )
-    print("6666666666666")
     # DB save
     star: Star = star_repo.update_star(star=star)
-    print("777777777777777")
 
     return StarSchema.from_orm(star)
 

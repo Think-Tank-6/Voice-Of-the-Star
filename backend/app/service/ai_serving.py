@@ -75,7 +75,6 @@ class SpeakerIdentification:
     COMBINED_STAR_VOICE_FILE_PATH = os.getenv("COMBINED_STAR_VOICE_FILE_PATH")
 
     def get_speaker_samples(self,original_voice_file):
-        print("1: ",type(original_voice_file))
         audio_byte = BytesIO(original_voice_file.file.read())
         audio_seg = AudioSegment.from_file(audio_byte)
 
@@ -96,7 +95,6 @@ class SpeakerIdentification:
             speaker_sample_list[key]["audio_byte"] = audio_base64
 
         original_voice_base64 = base64.b64encode(audio_byte.getvalue()).decode("utf-8")
-        print("1: ",type(original_voice_base64))
 
         return speaker_num, speech_list, speaker_sample_list, original_voice_base64
 
