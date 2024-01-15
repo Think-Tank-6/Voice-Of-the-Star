@@ -138,17 +138,17 @@ def upload_voice_handler(
     user: User = Depends(get_authenticated_user)
     ):
     speaker_identification = SpeakerIdentification()
-    speaker_num, full_speech_list, speaker_sample_list = speaker_identification.get_speaker_samples(original_voice_file)
+    speaker_num, full_speech_list, speaker_sample_list,original_voice_base64 = speaker_identification.get_speaker_samples(original_voice_file)
     
-    # speaker_sample_list dictionary안에 byteio instance 존재여부 확인 코드 -> 프론트 연결 후 삭제
-    audio_byte_type = "BytesIO" if isinstance(speaker_sample_list["1"]["audio_byte"], BytesIO) else str(type(speaker_sample_list["1"]["audio_byte"]))
-    print(audio_byte_type)
+    print(type(original_voice_base64))
 
     extracted_voice_info = {
         "speaker_num":speaker_num, 
         "full_speech_list":full_speech_list, 
-        "speaker_sample_list":speaker_sample_list
+        "speaker_sample_list":speaker_sample_list,
+        "original_voice_base64":original_voice_base64
         }
+    
     return extracted_voice_info
 
 # star 생성(보이스 선택)
@@ -157,7 +157,7 @@ def upload_voice_handler(
     star_id: int,
     selected_speaker_id: str = Form(...),
     speech_list: dict = Form(...),
-    original_voice_byte_file: UploadFile = File(...),
+    original_voice_base64: str = Form(...),
     user: User = Depends(get_authenticated_user),
     star_repo: StarRepository = Depends(),
 ) -> StarSchema:
@@ -168,13 +168,14 @@ def upload_voice_handler(
         raise HTTPException(status_code=404, detail="Star Not Found")
 
     speaker_identification = SpeakerIdentification()
-    speaker_identification.save_star_voice(selected_speaker_id, speech_list, original_voice_byte_file)
+    speaker_identification.save_star_voice(selected_speaker_id, speech_list, original_voice_base64)
 
     voice_cloning = VoiceCloning()
     gpt_cond_latent_pkl, speaker_embedding_pkl = voice_cloning.get_star_voice_vector(
         star_id=star_id
     )
     
+    # npy 테스트 필요
     star: Star = star.insert_npy(
         gpt_cond_latent_npy=gpt_cond_latent_pkl, 
         speaker_embedding_npy=speaker_embedding_pkl
