@@ -93,7 +93,6 @@ async def websocket_endpoint(
     else:
         gpt_input_list = []
     
-    p_data = ""
     chat_generation = ChatGeneration(p_data, gpt_input_list)
     # 현재 채팅 내역 
     full_message_list = []
