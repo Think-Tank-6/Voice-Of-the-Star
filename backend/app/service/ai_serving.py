@@ -1,4 +1,5 @@
 
+import base64
 from dotenv import load_dotenv
 from fastapi import HTTPException
 from openai import OpenAI
@@ -73,12 +74,13 @@ class SpeakerIdentification:
     def get_speaker_samples(self,original_voice_file):
         audio_byte = BytesIO(original_voice_file.file.read())
         audio_seg = AudioSegment.from_file(audio_byte)
+
+
         audio_binary = audio_seg.export(format="wav").read()
         res = ClovaSpeechClient().req_upload(file=audio_binary, completion='sync')
         timestamp = json.loads(res.text)
 
         speaker_num, speech_list, speaker_sample_list = speaker_diarization(timestamp)
-
         # speaker_sample_list에 담긴 타임스탬프 이용해서 original_voice_file의 각 구간을 byteio로 변환
         for key in speaker_sample_list.keys():
             speaker_info = speaker_sample_list[key]
@@ -86,13 +88,14 @@ class SpeakerIdentification:
             segment = audio_seg[int(speaker_info['start']):int(speaker_info['end'])]
             buffer = BytesIO()
             segment.export(buffer, format="wav")
+            audio_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
             buffer.seek(0)
+            # print('------------------', type(audio_base64))
+            speaker_sample_list[key]["audio_byte"] = audio_base64
+        original_voice_base64 = base64.b64encode(audio_byte.getvalue()).decode("utf-8")
+        return speaker_num, speech_list, speaker_sample_list, original_voice_base64
 
-            speaker_sample_list[key]["audio_byte"] = buffer
-            
-        return speaker_num, speech_list, speaker_sample_list
-
-    def save_star_voice(self,selected_speaker_id, speech_list, original_voice_byte_file,star_id):
+    def save_star_voice(self,selected_speaker_id, speech_list, original_voice_byte_file, star_id):
         # speech_list 가져와서 고인 목소리 이어붙이는 작업
         audio_segment = AudioSegment.from_file(original_voice_byte_file)
         combined_star_voice_file = audio_segment[0:0]
