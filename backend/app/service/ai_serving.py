@@ -90,17 +90,21 @@ class SpeakerIdentification:
             segment.export(buffer, format="wav")
             audio_base64 = base64.b64encode(buffer.getvalue()).decode("utf-8")
             buffer.seek(0)
-            # print('------------------', type(audio_base64))
             speaker_sample_list[key]["audio_byte"] = audio_base64
+
         original_voice_base64 = base64.b64encode(audio_byte.getvalue()).decode("utf-8")
         return speaker_num, speech_list, speaker_sample_list, original_voice_base64
 
-    def save_star_voice(self,selected_speaker_id, speech_list, original_voice_byte_file, star_id):
+    def save_star_voice(self,selected_speaker_id, speech_list, original_voice_base64, star_id):
         # speech_list 가져와서 고인 목소리 이어붙이는 작업
+        decoded_base64 = base64.b64decode(original_voice_base64)
+        original_voice_byte_file = BytesIO(decoded_base64)
         audio_segment = AudioSegment.from_file(original_voice_byte_file)
         combined_star_voice_file = audio_segment[0:0]
+
         for v in speech_list[selected_speaker_id]:
             combined_star_voice_file += audio_segment[int(v['start']):int(v['end'])]
+            
         combined_star_voice_file.export(f"{star_id}_combined_voice_file.wav", format="wav")
 
 
