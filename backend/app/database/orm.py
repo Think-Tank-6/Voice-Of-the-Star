@@ -1,5 +1,6 @@
 import numpy as np
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, LargeBinary, String, Date, Text, func
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Date, Text, func
+from sqlalchemy.dialects.mysql import MEDIUMBLOB
 from sqlalchemy.orm import declarative_base, relationship
 
 from schema.request import CreateStarRequest
@@ -19,8 +20,8 @@ class Star(Base):
     persona = Column(String(512), nullable=True)
     image = Column(String(512), nullable=True)
     chat_prompt_input_data = Column(Text, nullable=True)
-    gpt_cond_latent_data = Column(LargeBinary, nullable=True)
-    speaker_embedding_data = Column(LargeBinary, nullable=True)
+    gpt_cond_latent_data = Column(MEDIUMBLOB, nullable=True)
+    speaker_embedding_data = Column(MEDIUMBLOB, nullable=True)
     user_id = Column(String(50), ForeignKey("user.user_id"))
 
 

@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Body
 from sqlalchemy.orm import Session
 from database.connection import get_db
 from database.repository import UserRepository, AdminRepository
@@ -10,6 +10,9 @@ from database.orm import Admin
 
 
 router = APIRouter(prefix="/admin")
+
+
+# 회원 리스트
 
 @router.get("/user-list")
 def get_user_list(
@@ -22,6 +25,8 @@ def get_user_list(
     return {"users": users, "total": total, "page": page, "page_size": page_size}
 
 
+# 상세 페이지
+
 @router.get("/user-list/{user_id}")
 def get_user_detail(user_id: str, session: Session = Depends(get_db)):
     user_repo = UserRepository(session)
@@ -29,7 +34,6 @@ def get_user_detail(user_id: str, session: Session = Depends(get_db)):
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user
-
 @router.post("/join", status_code=201)
 def user_join_handler(
     request: AdminJoinRequest,
@@ -86,5 +90,4 @@ def admin_login_handler(
     
     access_token: str = auth_service.admincreate_jwt(admin_id=admin.admin_id)
     return JWTResponse(access_token=access_token)
-
 

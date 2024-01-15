@@ -12,6 +12,7 @@ import logging
 from service.ai_serving import voice_cloning_model, ChatGeneration, DetectCrime
 from security import get_access_token
 from database.orm import Star, User
+from dotenv import load_dotenv
 
 import pickle
 
@@ -19,6 +20,8 @@ from service.auth import AuthService
 import sys
 import os
 
+
+load_dotenv()
 
 # 로거 설정
 logger = logging.getLogger(__name__)

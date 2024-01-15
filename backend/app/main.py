@@ -7,9 +7,10 @@ import os
 
 from api import star, user, chat, admin
 
+load_dotenv()
+
 app = FastAPI()
 
-load_dotenv()
 origins_str = os.getenv("ORIGIN", "")
 origins = origins_str.split(",") if origins_str else []
 

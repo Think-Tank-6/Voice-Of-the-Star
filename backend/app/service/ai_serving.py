@@ -20,11 +20,12 @@ from ai_models.text_generation.crime_prevention import detect_voice_phishing
 
 import json
 from io import BytesIO
+import base64
 from pydub import AudioSegment
 import numpy as np
 import pickle
 
-# Voice cloning Model Load
+# # Voice cloning Model Load
 # VOICE_CLONING_MODEL_PATH = os.getenv("VOICE_CLONING_MODEL_PATH")
 # voice_cloning_model = load_model(VOICE_CLONING_MODEL_PATH)
 voice_cloning_model = None
@@ -53,6 +54,7 @@ class PromptGeneration:
     def create_prompt_input(self) -> str:
                
         user_name = get_user_name(self.original_text)
+        print("user_name : ", user_name)
         star_text = extract_messages(self.original_text, user_name)
       
         star_text_12k = load_text_from_bottom(star_text, 12000,'gpt3.5')
@@ -70,11 +72,12 @@ class PromptGeneration:
 
     
 class SpeakerIdentification:
+    COMBINED_STAR_VOICE_FILE_PATH = os.getenv("COMBINED_STAR_VOICE_FILE_PATH")
 
     def get_speaker_samples(self,original_voice_file):
+        print("1: ",type(original_voice_file))
         audio_byte = BytesIO(original_voice_file.file.read())
         audio_seg = AudioSegment.from_file(audio_byte)
-
 
         audio_binary = audio_seg.export(format="wav").read()
         res = ClovaSpeechClient().req_upload(file=audio_binary, completion='sync')
@@ -93,6 +96,8 @@ class SpeakerIdentification:
             speaker_sample_list[key]["audio_byte"] = audio_base64
 
         original_voice_base64 = base64.b64encode(audio_byte.getvalue()).decode("utf-8")
+        print("1: ",type(original_voice_base64))
+
         return speaker_num, speech_list, speaker_sample_list, original_voice_base64
 
     def save_star_voice(self,selected_speaker_id, speech_list, original_voice_base64, star_id):
@@ -101,20 +106,24 @@ class SpeakerIdentification:
         original_voice_byte_file = BytesIO(decoded_base64)
         audio_segment = AudioSegment.from_file(original_voice_byte_file)
         combined_star_voice_file = audio_segment[0:0]
-
         for v in speech_list[selected_speaker_id]:
             combined_star_voice_file += audio_segment[int(v['start']):int(v['end'])]
             
-        combined_star_voice_file.export(f"{star_id}_combined_voice_file.wav", format="wav")
-
+        save_file_path = self.COMBINED_STAR_VOICE_FILE_PATH + f"/{star_id}_combined_voice_file.wav"
+        combined_star_voice_file.export(save_file_path, format="wav")
 
 class VoiceCloning:
 
     def get_star_voice_vector(self, star_id: int):
+        
+        # Voice cloning Model Load
+        VOICE_CLONING_MODEL_PATH = os.getenv("VOICE_CLONING_MODEL_PATH")
+        voice_cloning_model = load_model(VOICE_CLONING_MODEL_PATH)
 
         COMBINED_STAR_VOICE_FILE_PATH = os.getenv("COMBINED_STAR_VOICE_FILE_PATH")
         combined_star_voice_file = COMBINED_STAR_VOICE_FILE_PATH + f"/{star_id}_combined_voice_file.wav"
 
+        print(combined_star_voice_file)
         gpt_cond_latent, speaker_embedding = create_star_vector(
             voice_cloning_model, 
             combined_star_voice_file
@@ -124,7 +133,7 @@ class VoiceCloning:
             if not os.path.exists(combined_star_voice_file):
                 raise HTTPException(status_code=404, detail="File not found")
             
-            os.remove(combined_star_voice_file)
+            # os.remove(combined_star_voice_file)
                 
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error deleting file: {str(e)}")
@@ -133,6 +142,7 @@ class VoiceCloning:
         speaker_embedding_pkl = pickle.dumps(speaker_embedding)
         
         return gpt_cond_latent_pkl, speaker_embedding_pkl
+    
 
 
 class ChatGeneration:
