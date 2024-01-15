@@ -1,3 +1,4 @@
+import base64
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Depends
 import numpy as np
 import torch
@@ -190,6 +191,10 @@ async def play_voice_handler(
     output_np = output.numpy()
     file_path = f"./resources/audio/output_{star_id}.wav"
     torchaudio.save(file_path, torch.Tensor(output_np), 24000)
+    
+    # base64 인코딩
+    with open(file_path, "rb") as audio_file:
+        audio_binary = audio_file.read()
+    star_voice = base64.b64encode(audio_binary).decode("utf-8")
 
-    # return output
-    return []
+    return star_voice
