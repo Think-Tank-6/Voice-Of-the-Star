@@ -1,15 +1,18 @@
 from datetime import date
+import json
+import os
 from typing import List, Optional
-from fastapi import Depends, File, Form, HTTPException, APIRouter, UploadFile
+from fastapi import Depends, File, Form, HTTPException, APIRouter, UploadFile , Path
 from service.s3_service import S3Service, get_s3_service
 from service.auth import AuthService
 from security import get_access_token
 
 from database.orm import Star, User
 from database.repository import UserRepository, StarRepository, MessageRepository, GptMessageRepository
-from schema.request import CreateStarRequest
+from schema.request import CreateStarRequest, voiceSelectRequest
 from schema.response import StarListSchema, StarSchema
 from service.ai_serving import PromptGeneration, SpeakerIdentification, VoiceCloning
+
 
 from io import BytesIO
 
@@ -54,7 +57,6 @@ def get_last_message(
     chat_repo: MessageRepository = Depends()
 ):
     last_message = chat_repo.get_last_message(star_id)
-    print("last_message : ", last_message)
     return last_message
 
 
@@ -96,6 +98,7 @@ async def create_star_handler(
         "relationship": relationship,
         "persona": persona,
     }
+    
 
     # Open text file
     original_text = await original_text_file.read()
@@ -127,7 +130,6 @@ def upload_voice_handler(
     speaker_identification = SpeakerIdentification()
     speaker_num, full_speech_list, speaker_sample_list,original_voice_base64 = speaker_identification.get_speaker_samples(original_voice_file)
     
-    print(type(original_voice_base64))
 
     extracted_voice_info = {
         "speaker_num":speaker_num, 
@@ -143,21 +145,21 @@ def upload_voice_handler(
 @router.post("/voice-select/{star_id}", status_code=201)
 def upload_voice_handler(
     star_id: int,
+    # request: voiceSelectRequest,
     selected_speaker_id: str = Form(...),
-    speech_list: dict = Form(...),
+    speech_list: str = Form(...),
     original_voice_base64: str = Form(...),
     user: User = Depends(get_authenticated_user),
     star_repo: StarRepository = Depends(),
 ) -> StarSchema:
-    
     star: Star | None = star_repo.get_star_by_star_id(star_id=star_id, user_id=user.user_id)
-
     if not star: 
         raise HTTPException(status_code=404, detail="Star Not Found")
-
+    speech_list_dict = json.loads(speech_list)
+   
     speaker_identification = SpeakerIdentification()
-    speaker_identification.save_star_voice(selected_speaker_id, speech_list, original_voice_base64)
-
+    # print("request: ", request)
+    speaker_identification.save_star_voice(selected_speaker_id, speech_list_dict, original_voice_base64,star_id)
     voice_cloning = VoiceCloning()
     gpt_cond_latent_pkl, speaker_embedding_pkl = voice_cloning.get_star_voice_vector(
         star_id=star_id
@@ -168,7 +170,6 @@ def upload_voice_handler(
         gpt_cond_latent_npy=gpt_cond_latent_pkl, 
         speaker_embedding_npy=speaker_embedding_pkl
     )
-    
     # DB save
     star: Star = star_repo.update_star(star=star)
 

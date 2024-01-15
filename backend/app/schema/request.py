@@ -59,3 +59,8 @@ class AdminLoginRequest(BaseModel):
 
 class PlayVoiceRequest(BaseModel):
     text: str
+
+class voiceSelectRequest(BaseModel):
+    selected_speaker_id: str
+    speech_list: str
+    original_voice_base64: str

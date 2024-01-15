@@ -68,6 +68,7 @@ class UserRepository:
         self.session.commit()
         self.session.refresh(instance=user)
         return user
+
     
     
 class MessageRepository:
@@ -148,7 +149,11 @@ class GptMessageRepository:
             upsert=True
         )
         return result
-
+    
+    def get_gpt_message(self, gpt_data_id):
+       # 'gpt_messages' 컬렉션에서 데이터 검색
+        return self.messages_collection.find_one({"gpt_data_id": gpt_data_id})
+    
 class AdminRepository:
     def __init__(self, session: Session = Depends(get_db)):
         self.session = session
