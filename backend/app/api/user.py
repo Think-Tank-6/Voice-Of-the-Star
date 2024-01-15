@@ -1,11 +1,13 @@
+from io import BytesIO
 from fastapi import APIRouter, Depends, File, HTTPException, Body, UploadFile
+from service.s3_service import S3Service, get_s3_service
 from security import get_access_token
 from schema.response import JWTResponse, UserSchema
 from database.repository import UserRepository
 from database.orm import User
 from service.auth import AuthService
 from schema.request import EmailCheckRequest, JoinRequest, LoginRequest, ModifyDeleteRequest, ModifyPasswordRequest
-from starlette.status import HTTP_400_BAD_REQUEST
+from service.s3_service import S3Service
 import requests
 from pydantic import BaseModel
 
@@ -155,10 +157,11 @@ def get_user_handler(
 
 
 @mypage_router.patch("/modify-info", status_code=201)
-def update_user_handler(
+async def update_user_handler(
     image: UploadFile = File(...),
     user: User = Depends(get_authenticated_user),
     user_repo: UserRepository = Depends(),
+    s3: S3Service = Depends(get_s3_service),
 ) -> UserSchema:
     
     user: User = user_repo.get_user_by_user_id(user.user_id)
@@ -166,7 +169,12 @@ def update_user_handler(
     if not user:
         raise HTTPException(status_code=404, detail="User Not Found")
     
-    image_url = "test"
+    image_data = await image.read()
+    object_name = f"user/{user.user_id}/{image.filename}"
+
+    s3.upload_file_to_s3(file_stream=BytesIO(image_data), object_name=object_name)
+    image_url = f"https://{s3.S3_BUCKET}.s3.amazonaws.com/{object_name}"
+
     user: User = user.update(image=image_url)
     user: User = user_repo.update_user(user=user)
     return UserSchema.from_orm(user)

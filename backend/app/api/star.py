@@ -1,7 +1,7 @@
 from datetime import date
-import os
 from typing import List, Optional
 from fastapi import Depends, File, Form, HTTPException, APIRouter, UploadFile
+from service.s3_service import S3Service, get_s3_service
 from service.auth import AuthService
 from security import get_access_token
 
@@ -13,27 +13,12 @@ from service.ai_serving import PromptGeneration, SpeakerIdentification, VoiceClo
 
 from io import BytesIO
 
-import boto3
-from botocore.exceptions import NoCredentialsError
 from dotenv import load_dotenv
 
 load_dotenv()
 
 router = APIRouter(prefix="/stars")
 
-S3_BUCKET = os.getenv("S3_BUCKET")
-aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
-aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
-
-if not aws_access_key_id or not aws_secret_access_key:
-    raise NoCredentialsError
-
-# AWS S3 클라이언트 초기화
-s3_client = boto3.client(
-    's3',
-    aws_access_key_id=aws_access_key_id,
-    aws_secret_access_key=aws_secret_access_key
-)
 
 # 유저 검증 및 조회(공통)
 def get_authenticated_user(
@@ -61,6 +46,7 @@ def get_stars_handler(
         stars=[StarSchema.from_orm(star) for star in stars] 
     )
 
+
 # 마지막 채팅 불러오기
 @router.get("/{star_id}/last", status_code=200)
 def get_last_message(
@@ -70,6 +56,7 @@ def get_last_message(
     last_message = chat_repo.get_last_message(star_id)
     print("last_message : ", last_message)
     return last_message
+
 
 # 단일 star 조회
 @router.get("/{star_id}", status_code=200)
@@ -151,6 +138,7 @@ def upload_voice_handler(
     
     return extracted_voice_info
 
+
 # star 생성(보이스 선택)
 @router.post("/voice-select/{star_id}", status_code=201)
 def upload_voice_handler(
@@ -203,13 +191,6 @@ def update_star_handler(
         return StarSchema.from_orm(star)
     return HTTPException(status_code=404, detail="Star Not Found")
 
-# AWS S3에 파일을 업로드하는 함수입니다.
-def upload_file_to_s3(file_stream, bucket, object_name):
-    try:
-        s3_client.upload_fileobj(file_stream, bucket, object_name)
-    except Exception as e:
-        print(e)
-        raise HTTPException(status_code=500, detail="Failed to upload to S3")
 
 # star image 수정 및 업로드
 @router.patch("/{star_id}/uploadImage", status_code=200)
@@ -218,6 +199,7 @@ async def upload_img_star_handler(
     file: UploadFile = File(...),
     user: User = Depends(get_authenticated_user),
     star_repo: StarRepository = Depends(StarRepository),
+    s3: S3Service = Depends(get_s3_service),
 ) -> StarSchema:
     
     star: Star | None = star_repo.get_star_by_star_id(star_id=star_id, user_id=user.user_id)
@@ -226,15 +208,15 @@ async def upload_img_star_handler(
 
     image_data = await file.read()
     object_name = f"star/{star_id}/{file.filename}"
-    upload_file_to_s3(BytesIO(image_data), S3_BUCKET, object_name)
-
-    # 파일 URL을 생성합니다. 's3://' 접두사를 포함하지 않는 버킷 이름을 사용합니다.
-    file_url = f"https://{S3_BUCKET}.s3.amazonaws.com/{object_name}"
     
-    star_repo.update_star_image_url(star_id=star_id, image_url=file_url)
+    s3.upload_file_to_s3(file_stream=BytesIO(image_data), object_name=object_name)
+    image_url = f"https://{s3.S3_BUCKET}.s3.amazonaws.com/{object_name}"
+
+    star_repo.update_star_image_url(star_id=star_id, image_url=image_url)
 
     updated_star: Star = star_repo.get_star_by_star_id(star_id=star_id, user_id=user.user_id)
     return StarSchema.from_orm(updated_star)
+
 
 # star 삭제
 @router.delete("/{star_id}", status_code=204)
