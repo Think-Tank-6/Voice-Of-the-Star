@@ -21,16 +21,17 @@ def load_text_from_bottom(text, max_token, gpt_version):
     lines = text.split('\n')[::-1]
 
 
-    total_text = ""
+    total_lines = []
     token_sum = 0
     for line in lines:
         new_text = line + '\n'
         tok = token_count(new_text, gpt_version)
         token_sum += tok
-
+    
         if token_sum > max_token:
             break
 
-        total_text += new_text 
+        total_lines.append(line)
 
-    return total_text
+    # 리스트를 뒤집고, 각 줄을 개행 문자('\n')로 연결
+    return '\n'.join(total_lines[::-1])
