@@ -3,7 +3,7 @@ from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, D
 from sqlalchemy.dialects.mysql import MEDIUMBLOB
 from sqlalchemy.orm import declarative_base, relationship
 
-from schema.request import CreateStarRequest
+from schema.request import UpdateStarRequest
 
 Base = declarative_base()
 
@@ -38,7 +38,7 @@ class Star(Base):
             user_id=user_id
         )
     
-    def update(self, request: CreateStarRequest) -> "Star":
+    def update(self, request: UpdateStarRequest) -> "Star":
         self.star_name = request.star_name
         return self
     
