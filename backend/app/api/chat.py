@@ -192,10 +192,7 @@ async def play_voice_handler(
     # 오디오 생성
     output_bytes = output.numpy().tobytes()
 
-    # 텐서를 바이트로 인코딩
-    tensor_bytes = torch.base64_encode(output_bytes)
-
     # 바이트를 base64로 디코딩
-    encoded_star_voice = base64.b64encode(tensor_bytes).decode('utf-8')
-    print(type(encoded_star_voice))
+    encoded_star_voice = base64.b64encode(output_bytes).decode('utf-8')
+    
     return encoded_star_voice
