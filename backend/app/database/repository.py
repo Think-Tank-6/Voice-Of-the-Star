@@ -35,6 +35,11 @@ class StarRepository:
     def delete_star(self, star_id: int) -> None:
         self.session.execute(delete(Star).where(Star.star_id == star_id)) 
         self.session.commit()
+        
+    def delete_star_mongo(self, star_id: int):
+        mongo_db = get_mongo()  # MongoDB 커넥션 가져오기
+        mongo_db['messages'].delete_many({'star_id': star_id})  # 'messages' 컬렉션에서 해당 star_id의 데이터 삭제
+        mongo_db['gptmessages'].delete_many({'star_id': star_id})  # 'gptmessages' 컬렉션에서 해당 star_id의 데이터 삭제
 
     def update_star_image_url(self, star_id: int, image_url: str) -> None:
         self.session.query(Star).filter(Star.star_id == star_id).update({'image': image_url})

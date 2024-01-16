@@ -9,7 +9,7 @@ from security import get_access_token
 
 from database.orm import Star, User
 from database.repository import UserRepository, StarRepository, MessageRepository, GptMessageRepository
-from schema.request import CreateStarRequest, voiceSelectRequest
+from schema.request import UpdateStarRequest, voiceSelectRequest
 from schema.response import StarListSchema, StarSchema
 from service.ai_serving import PromptGeneration, SpeakerIdentification, VoiceCloning
 
@@ -180,7 +180,7 @@ def upload_voice_handler(
 @router.patch("/{star_id}", status_code=200)
 def update_star_handler(
     star_id: int, 
-    request: CreateStarRequest,
+    request: UpdateStarRequest,
     user: User = Depends(get_authenticated_user),   # 유저 검증 dependency
     star_repo: StarRepository = Depends(StarRepository),
 ) -> StarSchema:
@@ -231,5 +231,9 @@ def delete_star_handler(
     
     if not star:
         raise HTTPException(status_code=404, detail="Star Not Found")
+    # MongoDB에서 관련 데이터 삭제
+    star_repo.delete_star_mongo(star_id=star_id)
+
+    # 기존 SQL 데이터베이스에서 별 삭제
     star_repo.delete_star(star_id=star_id)
 
