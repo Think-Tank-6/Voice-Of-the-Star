@@ -40,12 +40,6 @@ class Star(Base):
     
     def update(self, request: CreateStarRequest) -> "Star":
         self.star_name = request.star_name
-        self.gender = request.gender
-        self.birth = request.birth
-        self.death_date = request.death_date
-        self.relationship = request.relationship
-        self.persona = request.persona
-        self.image = request.image
         return self
     
     def insert_npy(

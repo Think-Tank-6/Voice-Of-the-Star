@@ -33,7 +33,7 @@ class CreateStarRequest(BaseModel):
 
 
 class UpdateStarRequest(BaseModel):
-    nickname: Optional[str]
+    star_name: Optional[str]
 
 
 class ModifyPasswordRequest(BaseModel):
