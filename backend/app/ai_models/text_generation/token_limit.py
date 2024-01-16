@@ -20,7 +20,6 @@ def token_count(text,gpt_version):
 def load_text_from_bottom(text, max_token, gpt_version):
     lines = text.split('\n')[::-1]
 
-
     total_lines = []
     token_sum = 0
     for line in lines:

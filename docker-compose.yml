@@ -11,7 +11,7 @@ services:
       MYSQL_PASSWORD: '${MYSQL_PASSWORD}'
       TZ: 'Asia/Seoul'
     volumes:
-      - vos-mysql-data:/db
+      - vos-mysql-data:/var/lib/mysql
     container_name: vos-mysql
 
   vos-mongodb:
@@ -29,4 +29,4 @@ volumes:
   vos-mysql-data:
     driver: local
   vos-mongodb-data:
-    driver: local
+    driver: local 

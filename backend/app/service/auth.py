@@ -10,6 +10,7 @@ from security import get_access_token
 
 load_dotenv()
 
+
 class AuthService:
     encoding: str = "UTF-8"
     SECRET_KEY = os.getenv("SECRET_KEY")
@@ -44,7 +45,7 @@ class AuthService:
             self.SECRET_KEY, 
             algorithms=[self.JWT_ALGORITHM]
         )
-        return payload["user_id"]   # user_id 리턴
+        return payload["user_id"]
     
     def verify_user(
             self, 
@@ -62,7 +63,7 @@ class AuthService:
         
         return user
     
-    def admincreate_jwt(self, admin_id: str) -> str: 
+    def admin_create_jwt(self, admin_id: str) -> str: 
         return jwt.encode(
             {
                 "admin_id": admin_id,
@@ -78,7 +79,7 @@ class AuthService:
             self.SECRET_KEY, 
             algorithms=[self.JWT_ALGORITHM]
         )
-        return payload["admin_id"]   # user_id 리턴
+        return payload["admin_id"]
     
     def verify_admin(
             self, 

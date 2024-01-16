@@ -72,9 +72,7 @@ class ClovaSpeechClient:
             'Accept': 'application/json;UTF-8',
             'X-CLOVASPEECH-API-KEY': self.clova_secret_key
         }
-        print(json.dumps(request_body, ensure_ascii=False).encode('UTF-8'))
         files = {
-            # 'media': open(file, 'rb'),
             'media' : file,
             'params': (None, json.dumps(request_body, ensure_ascii=False).encode('UTF-8'), 'application/json')
         }

@@ -9,7 +9,6 @@ from service.auth import AuthService
 from schema.request import EmailCheckRequest, JoinRequest, LoginRequest, ModifyDeleteRequest, ModifyPasswordRequest, KakaoLoginRequest
 from service.s3_service import S3Service
 import requests
-from pydantic import BaseModel
 
 
 router = APIRouter(prefix="/users")
@@ -25,15 +24,18 @@ def get_authenticated_user(
     return auth_service.verify_user(access_token=access_token, user_repo=user_repo)
 
 
+# 유저 회원가입
 @router.post("/join", status_code=201)
 def user_join_handler(
     request: JoinRequest,
     auth_service: AuthService = Depends(),
     user_repo: UserRepository = Depends(),
 ) -> UserSchema:
+    
     hashed_password: str = auth_service.hash_password(
         plain_password=request.password
     )
+    
     user: User = User.create(
         user_id=request.user_id, 
         hashed_password=hashed_password,
@@ -46,6 +48,7 @@ def user_join_handler(
     return UserSchema.from_orm(user)
 
 
+# 이메일 중복 체크
 @router.post("/join/email-check", status_code=200)
 def email_check_handler(
     request: EmailCheckRequest,
@@ -65,6 +68,7 @@ def email_check_handler(
         }
         
 
+# 유저 로그인
 @router.post("/login")
 def user_login_handler(
     request: LoginRequest,
@@ -86,12 +90,13 @@ def user_login_handler(
         raise HTTPException(status_code=401, detail="Not Authorized")
 
     if user.user_status != 1:
-        raise HTTPException(status_code=403, detail="탈퇴한 회원입니다.")
+        raise HTTPException(status_code=403, detail="Not activated User")
     
     access_token: str = auth_service.create_jwt(user_id=user.user_id)
     return JWTResponse(access_token=access_token)
 
 
+# 유저 카카오 로그인
 @router.post("/kakao-login")
 def kakao_login_handler(
     kakao_login_request: KakaoLoginRequest = Body(...),
@@ -106,7 +111,6 @@ def kakao_login_handler(
         raise HTTPException(status_code=400, detail="Invalid kakao token")
 
     kakao_user_info = kakao_response.json()
-    print("Kakao API Response:", kakao_user_info)
 
     # 카카오 API 응답에서 정보 가져오기
     user_id = kakao_user_info.get("kakao_account", {}).get("email")
@@ -119,7 +123,6 @@ def kakao_login_handler(
         birth = f"{birthyear}-{birthday[:2]}-{birthday[2:]}"
     else:
         birth = None
-
 
     user: User | None = auth_repo.get_user_by_user_id(user_id=user_id)
 
@@ -140,6 +143,7 @@ def kakao_login_handler(
         return JWTResponse(access_token=existing_access_token)
     
 
+# 마이페이지 조회
 @mypage_router.get("", status_code=200)
 def get_user_handler(
     user: User = Depends(get_authenticated_user),
@@ -154,6 +158,7 @@ def get_user_handler(
     return UserSchema.from_orm(user)
 
 
+# 마이페이지 - 개인정보 수정
 @mypage_router.patch("/modify-info", status_code=201)
 async def update_user_handler(
     image: UploadFile = File(...),
@@ -170,6 +175,7 @@ async def update_user_handler(
     image_data = await image.read()
     object_name = f"user/{user.user_id}/{image.filename}"
 
+    # S3 업로드
     s3.upload_file_to_s3(file_stream=BytesIO(image_data), object_name=object_name)
     image_url = f"https://{s3.S3_BUCKET}.s3.amazonaws.com/{object_name}"
 
@@ -178,6 +184,7 @@ async def update_user_handler(
     return UserSchema.from_orm(user)
 
 
+# 마이페이지 - 비밀번호 변경
 @mypage_router.patch("/modify-password", status_code=201)
 def modify_user_password_handler(
     request: ModifyPasswordRequest,
@@ -202,6 +209,8 @@ def modify_user_password_handler(
     user: User = user_repo.save_user(user=user)
     return UserSchema.from_orm(user)
 
+
+# 마이페이지 - 회원탈퇴
 @mypage_router.patch("/modify-delete", status_code=201)
 def modify_user_delete_handler(
     request: ModifyDeleteRequest,
@@ -217,12 +226,7 @@ def modify_user_delete_handler(
     if not verified:
         raise HTTPException(status_code=401, detail="비밀번호가 다릅니다.")
 
-    print("user_status:", user.user_status)
-    # 사용자 상태를 업데이트 (예: 2로 변경)
+    # 사용자 상태를 업데이트(2로 변경)
     user.update_delete(new_status=2)
-
-    # 변경된 사용자 정보 저장
-    print("Updated user_status:", user.user_status)
     user = user_repo.save_user(user=user) 
-    
     return UserSchema.from_orm(user)

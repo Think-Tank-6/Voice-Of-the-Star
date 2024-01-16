@@ -40,6 +40,7 @@ class ModifyPasswordRequest(BaseModel):
     current_password: str
     new_password: str
 
+
 class ModifyDeleteRequest(BaseModel):
     current_password: str
     user_status: str
@@ -60,10 +61,6 @@ class AdminLoginRequest(BaseModel):
 class PlayVoiceRequest(BaseModel):
     text: str
 
-class voiceSelectRequest(BaseModel):
-    selected_speaker_id: str
-    speech_list: str
-    original_voice_base64: str
 
 class KakaoLoginRequest(BaseModel):
     access_token: str

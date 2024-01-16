@@ -52,5 +52,6 @@ class AdminSchema(BaseModel):
     admin_status: int
     created_at: datetime
 
+
     class Config:
         orm_mode = True    
