@@ -1,4 +1,3 @@
-
 from dotenv import load_dotenv
 from openai import OpenAI
 import os
@@ -8,7 +7,6 @@ API_KEY = os.getenv("GPT_API_KEY")
 client = OpenAI(api_key=API_KEY)
 def detect_voice_phishing(client,user_input,prompt):
     
-
     #gpt 구현
     messages = []
     messages.append({'role': 'system', 'content': prompt})

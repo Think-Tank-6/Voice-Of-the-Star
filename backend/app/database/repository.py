@@ -45,6 +45,7 @@ class StarRepository:
         self.session.query(Star).filter(Star.star_id == star_id).update({'image': image_url})
         self.session.commit()
 
+
 class UserRepository:
     def __init__(self, session: Session = Depends(get_db)):
         self.session = session
@@ -74,7 +75,6 @@ class UserRepository:
         self.session.refresh(instance=user)
         return user
 
-    
     
 class MessageRepository:
     def __init__(self):
@@ -115,6 +115,7 @@ class MessageRepository:
         ])
         return [msg["messages"] for msg in messages]
     
+
 class GptMessageRepository:
     def __init__(self):
         self.db = get_mongo()
@@ -122,9 +123,9 @@ class GptMessageRepository:
     
     def save_p_data(self, star_id, p_data):
         result = self.gpt_messages_collection.update_one(
-            {"star_id": star_id},  # 'star_id'를 사용하여 특정 문서를 필터링합니다.
-            {"$set": {"p_data": p_data}},  # 'p_data'를 업데이트합니다.
-            upsert=True  # 해당 'star_id'가 없는 경우 새 문서를 만듭니다.
+            {"star_id": star_id},  # 'star_id'를 사용하여 특정 문서를 필터링
+            {"$set": {"p_data": p_data}},  # 'p_data'를 업데이트
+            upsert=True  # 해당 'star_id'가 없는 경우 새 문서 생성
         )
         return result
 
@@ -159,6 +160,7 @@ class GptMessageRepository:
        # 'gpt_messages' 컬렉션에서 데이터 검색
         return self.messages_collection.find_one({"gpt_data_id": gpt_data_id})
     
+
 class AdminRepository:
     def __init__(self, session: Session = Depends(get_db)):
         self.session = session

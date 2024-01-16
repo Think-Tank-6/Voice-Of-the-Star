@@ -1,5 +1,4 @@
-from typing import Optional
-from fastapi import APIRouter, Depends, HTTPException, Query, Body
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from database.connection import get_db
 from database.repository import UserRepository, AdminRepository
@@ -13,7 +12,6 @@ router = APIRouter(prefix="/admin")
 
 
 # 회원 리스트
-
 @router.get("/user-list")
 def get_user_list(
     page: int = Query(1, alias="page"), 
@@ -25,8 +23,7 @@ def get_user_list(
     return {"users": users, "total": total, "page": page, "page_size": page_size}
 
 
-# 상세 페이지
-
+# 회원 상세 페이지
 @router.get("/user-list/{user_id}")
 def get_user_detail(user_id: str, session: Session = Depends(get_db)):
     user_repo = UserRepository(session)
@@ -34,13 +31,15 @@ def get_user_detail(user_id: str, session: Session = Depends(get_db)):
     if user is None:
         raise HTTPException(status_code=404, detail="User not found")
     return user
+
+
+# 관리자 회원가입
 @router.post("/join", status_code=201)
-def user_join_handler(
+def admin_join_handler(
     request: AdminJoinRequest,
     auth_service: AuthService = Depends(),
     admin_repo: AdminRepository = Depends(),
 ) -> AdminSchema:
-    # 이미 존재하는 admin_id인지 확인
     existing_admin = admin_repo.get_admin_by_admin_id(request.admin_id)
     if existing_admin:
         raise HTTPException(status_code=400, detail="Member already exists")
@@ -48,6 +47,7 @@ def user_join_handler(
     hashed_password: str = auth_service.hash_password(
         plain_password=request.password
     )
+
     admin: Admin = Admin.create(
         admin_id=request.admin_id, 
         hashed_password=hashed_password,
@@ -58,6 +58,8 @@ def user_join_handler(
     admin: admin = admin_repo.save_admin(admin=admin)
     return AdminSchema.from_orm(admin)
 
+
+# 관리자 리스트
 @router.get("/admin-list")
 def get_admin_list(
     page: int = Query(1, alias="page"), 
@@ -69,6 +71,7 @@ def get_admin_list(
     return {"admins": admins, "total": total, "page": page, "page_size": page_size}
 
 
+# 관리자 로그인
 @router.post("/login")
 def admin_login_handler(
     request: AdminLoginRequest,
@@ -88,6 +91,6 @@ def admin_login_handler(
     if not verified:
         raise HTTPException(status_code=401, detail="Not Authorized")
     
-    access_token: str = auth_service.admincreate_jwt(admin_id=admin.admin_id)
+    access_token: str = auth_service.admin_create_jwt(admin_id=admin.admin_id)
     return JWTResponse(access_token=access_token)
 

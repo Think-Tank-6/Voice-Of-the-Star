@@ -22,8 +22,9 @@ class Star(Base):
     chat_prompt_input_data = Column(Text, nullable=True)
     gpt_cond_latent_data = Column(MEDIUMBLOB, nullable=True)
     speaker_embedding_data = Column(MEDIUMBLOB, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     user_id = Column(String(50), ForeignKey("user.user_id"))
-
 
     @classmethod
     def create(cls, request: dict, chat_prompt_input_data: str, user_id: str) -> "Star":
@@ -101,6 +102,7 @@ class User(Base):
     def update_delete(self, new_status: int) -> "User":
         self.user_status = new_status
         return self
+
 
 #관리자
 class Admin(Base): 

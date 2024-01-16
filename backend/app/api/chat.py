@@ -1,8 +1,5 @@
 import base64
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Depends
-import numpy as np
-import torch
-import torchaudio
 from ai_models.voice_cloning.xtts import inference
 from schema.request import PlayVoiceRequest
 from database.repository import MessageRepository, GptMessageRepository, StarRepository, UserRepository
@@ -30,9 +27,9 @@ logging.basicConfig(level=logging.DEBUG,
 
 router = APIRouter(prefix="/chat")
 
-# 함수 밖에 선언 필요 (추후 수정)
 voice_phishing_p_data_path = os.getenv("VOICE_PHISHING_PROMPT_PATH")
 detect_crime = DetectCrime(voice_phishing_p_data_path)
+
 
 # 유저 검증 및 조회(공통)
 def get_authenticated_user(
@@ -63,14 +60,12 @@ gpt_message_repo = GptMessageRepository()
 user_input = ""
 
 
+# 최근 채팅 메시지 조회
 @router.get("/{star_id}/messages")
-async def get_chat_messages(star_id: int, limit: int = 50):
-    """
-    특정 채팅방의 최근 채팅 메시지를 가져옵니다.
-    :param star_id: 채팅방 ID
-    :param limit: 반환할 메시지의 최대 개수
-    :return: 채팅 메시지 리스트
-    """
+async def get_chat_messages(
+    star_id: int, 
+    limit: int = 50 # limit: 반환할 메시지의 최대 개수
+):
     try:
         messages = message_repo.get_messages(star_id, limit)
         return messages
@@ -79,14 +74,13 @@ async def get_chat_messages(star_id: int, limit: int = 50):
         raise HTTPException(status_code=500, detail="Error fetching messages")
 
 
-
+# WebSocket
 @router.websocket("/{star_id}")
 async def websocket_endpoint(
         websocket: WebSocket, 
         star_id: int
     ):
 
-    
     #p_data 가져오기 (수정필요)
     p_data = gpt_message_repo.get_p_data(star_id)
     
@@ -108,7 +102,6 @@ async def websocket_endpoint(
         sys.setrecursionlimit(10000)
         while True:
             data = await websocket.receive_text()
-            print("data : ", data)
             try:
                 message_data = json.loads(data)
                 # 메시지 형식 검증
@@ -130,13 +123,11 @@ async def websocket_endpoint(
 
                 await manager.send_message("assistant", response, star_id)
 
-
             except json.JSONDecodeError:
                 logger.error("Error decoding message")
     except WebSocketDisconnect:
         logger.debug(f"WebSocket disconnected for user: {star_id}")
         
-
         for current_message in full_message_list:
             current_user_input = current_message["user_input"]
             current_gpt_response = current_message["gpt_response"]
@@ -153,13 +144,11 @@ async def websocket_endpoint(
             # GptMessageRepository에 gpt 응답 저장
             gpt_message_repo.save_gpt_message(star_id=star_id, sender="assistant", content=current_gpt_response)
 
-        
         manager.disconnect(star_id)
     except Exception as e:
         logger.error(f"Error: {e}")
         await websocket.close(code=1011) 
         
-
 # Voice Cloning
 @router.post("/play-voice/{star_id}", status_code=200)
 async def play_voice_handler(
@@ -192,7 +181,7 @@ async def play_voice_handler(
     # 오디오 생성
     output_bytes = output.numpy().tobytes()
 
-    # 바이트를 base64로 디코딩
+    # base64 인코딩
     encoded_star_voice = base64.b64encode(output_bytes).decode('utf-8')
     
     return encoded_star_voice

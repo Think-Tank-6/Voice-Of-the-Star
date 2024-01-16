@@ -22,7 +22,6 @@ import json
 from io import BytesIO
 import base64
 from pydub import AudioSegment
-import numpy as np
 import pickle
 
 # Voice cloning Model Load
@@ -47,7 +46,6 @@ class PromptGeneration:
         self.API_KEY = os.getenv("GPT_API_KEY")
         self.client = OpenAI(api_key=self.API_KEY)
 
-        # 추후 수정
         self.prompt_file_path = os.getenv("PROMPT_FILE_PATH")
         self.system_input_path = os.getenv("SYSTEM_INPUT_PATH")
 
@@ -110,16 +108,14 @@ class SpeakerIdentification:
         save_file_path = self.COMBINED_STAR_VOICE_FILE_PATH + f"/{star_id}_combined_voice_file.wav"
         combined_star_voice_file.export(save_file_path, format="wav")
 
+
 class VoiceCloning:
 
     def get_star_voice_vector(self, star_id: int):
-        
-        
 
         COMBINED_STAR_VOICE_FILE_PATH = os.getenv("COMBINED_STAR_VOICE_FILE_PATH")
         combined_star_voice_file = COMBINED_STAR_VOICE_FILE_PATH + f"/{star_id}_combined_voice_file.wav"
 
-        print(combined_star_voice_file)
         gpt_cond_latent, speaker_embedding = create_star_vector(
             voice_cloning_model, 
             combined_star_voice_file
@@ -129,7 +125,7 @@ class VoiceCloning:
             if not os.path.exists(combined_star_voice_file):
                 raise HTTPException(status_code=404, detail="File not found")
             
-            # os.remove(combined_star_voice_file)
+            os.remove(combined_star_voice_file)
                 
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"Error deleting file: {str(e)}")
@@ -140,7 +136,6 @@ class VoiceCloning:
         return gpt_cond_latent_pkl, speaker_embedding_pkl
     
 
-
 class ChatGeneration:
     API_KEY = os.getenv("GPT_API_KEY")
     client = OpenAI(api_key=API_KEY)
@@ -149,7 +144,6 @@ class ChatGeneration:
         self.messages = messages
         self.p_data = p_data
 
-        # 추후 p_data 연결
         self.messages.insert(0,{'role': 'system', 'content': p_data})
 
     def get_gpt_answer(self,user_input):
