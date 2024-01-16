@@ -6,14 +6,11 @@ from schema.response import JWTResponse, UserSchema
 from database.repository import UserRepository
 from database.orm import User
 from service.auth import AuthService
-from schema.request import EmailCheckRequest, JoinRequest, LoginRequest, ModifyDeleteRequest, ModifyPasswordRequest
+from schema.request import EmailCheckRequest, JoinRequest, LoginRequest, ModifyDeleteRequest, ModifyPasswordRequest, KakaoLoginRequest
 from service.s3_service import S3Service
 import requests
 from pydantic import BaseModel
 
-
-class KakaoLoginRequest(BaseModel):
-    access_token: str
 
 router = APIRouter(prefix="/users")
 mypage_router = APIRouter(prefix="/mypage")
@@ -84,6 +81,7 @@ def user_login_handler(
         plain_password=request.password,
         hash_password=user.password,
     )
+    
     if not verified:
         raise HTTPException(status_code=401, detail="Not Authorized")
 
