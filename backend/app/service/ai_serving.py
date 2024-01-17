@@ -6,9 +6,6 @@ from openai import OpenAI
 import os
 
 from ai_models.voice_cloning.xtts import create_star_vector, load_model
-
-load_dotenv()
-
 from ai_models.text_generation.preprocessing import get_user_name,extract_messages
 from ai_models.text_generation.token_limit import load_text_from_bottom
 from ai_models.text_generation.characteristic_generation import merge_prompt_text,get_characteristics
@@ -17,12 +14,14 @@ from ai_models.speaker_identification.clova_speech import ClovaSpeechClient
 from ai_models.speaker_identification.postprocessing import speaker_diarization
 from ai_models.text_generation.crime_prevention import detect_voice_phishing
 
-
 import json
 from io import BytesIO
 import base64
 from pydub import AudioSegment
 import pickle
+
+load_dotenv()
+
 
 # Voice cloning Model Load
 VOICE_CLONING_MODEL_PATH = os.getenv("VOICE_CLONING_MODEL_PATH")
@@ -112,6 +111,8 @@ class SpeakerIdentification:
 class VoiceCloning:
 
     def get_star_voice_vector(self, star_id: int):
+        
+        
 
         COMBINED_STAR_VOICE_FILE_PATH = os.getenv("COMBINED_STAR_VOICE_FILE_PATH")
         combined_star_voice_file = COMBINED_STAR_VOICE_FILE_PATH + f"/{star_id}_combined_voice_file.wav"
