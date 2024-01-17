@@ -1,17 +1,23 @@
 import base64
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Depends
+import io
+from fastapi import APIRouter, UploadFile, WebSocket, WebSocketDisconnect, HTTPException, Depends
+import torch
+import torchaudio
 from ai_models.voice_cloning.xtts import inference
 from schema.request import PlayVoiceRequest
 from database.repository import MessageRepository, GptMessageRepository, StarRepository, UserRepository
 from service.auth import HTTPException, AuthService
+from service.s3_service import S3Service, get_s3_service
 import json
 import logging
 from service.ai_serving import voice_cloning_model, ChatGeneration, DetectCrime
 from security import get_access_token
 from database.orm import Star, User
 from dotenv import load_dotenv
-
+import boto3
+from botocore.exceptions import NoCredentialsError
 import pickle
+
 
 from service.auth import AuthService
 import sys
@@ -149,6 +155,7 @@ async def websocket_endpoint(
         logger.error(f"Error: {e}")
         await websocket.close(code=1011) 
         
+
 # Voice Cloning
 @router.post("/play-voice/{star_id}", status_code=200)
 async def play_voice_handler(
@@ -156,6 +163,7 @@ async def play_voice_handler(
     request: PlayVoiceRequest,
     user: User = Depends(get_authenticated_user),
     star_repo: StarRepository = Depends(),
+    s3: S3Service = Depends(get_s3_service),
 ):
     text = request.text
 
@@ -170,7 +178,7 @@ async def play_voice_handler(
     
     gpt_cond_latent = pickle.loads(gpt_cond_latent_data)
     speaker_embedding = pickle.loads(speaker_embedding_data)
-   
+
     output = inference(
         voice_cloning_model,
         text, 
@@ -178,10 +186,23 @@ async def play_voice_handler(
         speaker_embedding
     )
 
-    # 오디오 생성
-    output_bytes = output.numpy().tobytes()
+    torchaudio.save(f'C:/Users/hi/dev/official_vos/VOS-server/backend/app/resources/audio/{star_id}.wav', output, 24000)
 
-    # base64 인코딩
-    encoded_star_voice = base64.b64encode(output_bytes).decode('utf-8')
-    
-    return encoded_star_voice
+    filename = f'{star_id}.wav'
+    local_wav_file_path = f'C:/Users/hi/dev/official_vos/VOS-server/backend/app/resources/audio/{filename}'
+
+    # S3 업로드
+    object_name = f"star/{star_id}/voice/{filename}"
+    s3.upload_audio_file_to_s3(local_wav_file_path, object_name=object_name)
+    voice_url = f"https://{s3.S3_BUCKET}.s3.amazonaws.com/{object_name}"
+
+    try:
+        if not os.path.exists(local_wav_file_path):
+            raise HTTPException(status_code=404, detail="File not found")
+        
+        os.remove(local_wav_file_path)
+            
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting file: {str(e)}")
+
+    return voice_url

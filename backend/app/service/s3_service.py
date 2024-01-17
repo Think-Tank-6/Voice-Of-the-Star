@@ -18,9 +18,16 @@ class S3Service:
         )
         self.S3_BUCKET = s3_bucket
     
-    def upload_file_to_s3(self, file_stream, object_name):
+    def upload_fileobj_to_s3(self, file_stream, object_name):
         try:
             self.s3_client.upload_fileobj(file_stream, self.S3_BUCKET, object_name)
+        except Exception as e:
+            print(e)
+            raise HTTPException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to upload to S3")
+
+    def upload_audio_file_to_s3(self, audio_file, object_name):
+        try:
+            self.s3_client.upload_file(audio_file, self.S3_BUCKET, object_name)
         except Exception as e:
             print(e)
             raise HTTPException(status_code=HTTP_500_INTERNAL_SERVER_ERROR, detail="Failed to upload to S3")
@@ -33,5 +40,6 @@ def get_s3_service(
 ) -> S3Service:
     if not aws_access_key_id or not aws_secret_access_key:
         raise NoCredentialsError
+    
     
     return S3Service(S3_BUCKET, aws_access_key_id, aws_secret_access_key)

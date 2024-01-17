@@ -211,7 +211,7 @@ async def upload_img_star_handler(
     object_name = f"star/{star_id}/{file.filename}"
     
     # S3 업로드
-    s3.upload_file_to_s3(file_stream=BytesIO(image_data), object_name=object_name)
+    s3.upload_fileobj_to_s3(file_stream=BytesIO(image_data), object_name=object_name)
     image_url = f"https://{s3.S3_BUCKET}.s3.amazonaws.com/{object_name}"
 
     star_repo.update_star_image_url(star_id=star_id, image_url=image_url)
