@@ -29,7 +29,7 @@ class ClovaSpeechClient:
             'X-CLOVASPEECH-API-KEY': self.clova_secret_key
         }
         return requests.post(headers=headers,
-                             url=self.invoke_url + '/recognizer/url',
+                             url=self.invoke_url + '/recognizer/url',verify=False,
                              data=json.dumps(request_body).encode('UTF-8'))
 
     def req_object_storage(self, data_key, completion, callback=None, userdata=None, forbiddens=None, boostings=None,

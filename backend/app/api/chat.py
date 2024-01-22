@@ -33,7 +33,11 @@ logging.basicConfig(level=logging.DEBUG,
 
 router = APIRouter(prefix="/chat")
 
+# get path
+audio_dir_path = os.getenv("AUDIO_DIR_PATH")
 voice_phishing_p_data_path = os.getenv("VOICE_PHISHING_PROMPT_PATH")
+
+# create DetectCrime instance
 detect_crime = DetectCrime(voice_phishing_p_data_path)
 
 
@@ -168,7 +172,7 @@ async def play_voice_handler(
     text = request.text
 
     star: Star | None = star_repo.get_star_by_star_id(star_id=star_id, user_id=user.user_id)
-
+    
     if not star:
         raise HTTPException(status_code=404, detail="Star Not Found")
     
@@ -186,10 +190,11 @@ async def play_voice_handler(
         speaker_embedding
     )
 
-    torchaudio.save(f'C:/Users/hi/dev/official_vos/VOS-server/backend/app/resources/audio/{star_id}.wav', output, 24000)
+    # local path에 저장
+    torchaudio.save(f'{audio_dir_path}{star_id}.wav', output, 24000)
 
     filename = f'{star_id}.wav'
-    local_wav_file_path = f'C:/Users/hi/dev/official_vos/VOS-server/backend/app/resources/audio/{filename}'
+    local_wav_file_path = f'{audio_dir_path}{filename}'
 
     # S3 업로드
     object_name = f"star/{star_id}/voice/{filename}"
