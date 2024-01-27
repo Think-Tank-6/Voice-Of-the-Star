@@ -69,7 +69,7 @@ class PromptGeneration:
 class SpeakerIdentification:
     COMBINED_STAR_VOICE_FILE_PATH = os.getenv("COMBINED_STAR_VOICE_FILE_PATH")
 
-    def get_speaker_samples(self,original_voice_file):
+    async def get_speaker_samples(self,original_voice_file):
         audio_byte = BytesIO(original_voice_file.file.read())
         audio_seg = AudioSegment.from_file(audio_byte)
 
@@ -132,6 +132,13 @@ class VoiceCloning:
         
         return gpt_cond_latent_pkl, speaker_embedding_pkl
     
+
+
+
+
+
+
+
 
 class ChatGeneration:
     API_KEY = os.getenv("GPT_API_KEY")

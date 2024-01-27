@@ -12,6 +12,7 @@ services:
       TZ: 'Asia/Seoul'
     volumes:
       - vos-mysql-data:/var/lib/mysql
+      # - vos-mysql-data:/data/db
     container_name: vos-mysql
 
   vos-mongodb:

@@ -1,9 +1,8 @@
 import base64
-import io
-from fastapi import APIRouter, UploadFile, WebSocket, WebSocketDisconnect, HTTPException, Depends
-import torch
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException, Depends
 import torchaudio
 from ai_models.voice_cloning.xtts import inference
+from service.s3_service import S3Service
 from schema.request import PlayVoiceRequest
 from database.repository import MessageRepository, GptMessageRepository, StarRepository, UserRepository
 from service.auth import HTTPException, AuthService
@@ -14,8 +13,6 @@ from service.ai_serving import voice_cloning_model, ChatGeneration, DetectCrime
 from security import get_access_token
 from database.orm import Star, User
 from dotenv import load_dotenv
-import boto3
-from botocore.exceptions import NoCredentialsError
 import pickle
 
 
