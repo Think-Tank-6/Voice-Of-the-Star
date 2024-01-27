@@ -1,8 +1,6 @@
 
 # 👥 팀원 소개
 
----
-
 
 <div align="left">
   <table>
@@ -24,7 +22,7 @@
       </td>
       <td align="center">
         <a href="https://github.com/neymaru">
-          <img src="https://avatars.githubusercontent.com/u/106804514?v=4" alt="김성현 프로필" width=120 height=120 />
+          <img src="https://github.com/Think-Tank-6/VOS-server/assets/77764316/4e56ad03-af91-4e21-9544-00798cdad0be" alt="김성현 프로필" width=120 height=120 />
         </a>
       </td>
       <td align="center">
@@ -79,20 +77,13 @@
 
 # 🌟 프로젝트 소개
 
----
-
 ## 프로젝트 배경
 
-<div style="display: flex; justify-content: space-around; align-items: center;">
-    <div style="text-align: center;">
-        <img src="asset/Untitled.png" style="width:300px; height:200px;">
-        <p style="vertical-align: top;">1. 매년 증가하는 사망률</p>
-    </div>
-    <div style="text-align: center;">
-        <img src="asset/Untitled%201.png" style="width:300px; height:200px;">
-        <p style="vertical-align: top;">2. 애도 시간 부족</p>
-    </div>
-</div>
+|                   1. 매년 증가하는 사망률                   |                      2. 애도 시간 부족                       |
+| ---------------------------------------------------------- | ---------------------------------------------------------- |
+| [![매년 증가하는 사망률](asset/Untitled.png)](#)             | [![애도 시간 부족](asset/Untitled%201.png)](#)              |
+
+
 
 
 사회적으로 매년 증가하는 사망자 수에 대응하여, 우리의 서비스는 코로나나 각종 사고로 인해 갑작스럽게 이별을 경험하고, 슬픔을 충분히 처리할 시간조차 갖지 못하는 이들에게 필요한 지지와 위로를 제공합니다. 
@@ -104,20 +95,17 @@
 > **AI를 활용한 고인과의 채팅 및 음성 복원 서비스**
 > 
 
-<div style="display: flex; flex-wrap: wrap; justify-content: space-around; align-items: center;">
-    <div style="text-align: center; margin: 10px;">
-        <img src="asset/Untitled%202.png" style="width:150px; height:320px;">
-    </div>
-    <div style="text-align: center; margin: 10px;">
-        <img src="asset/Untitled%203.png" style="width:150px; height:320px;">
-    </div>
-    <div style="text-align: center; margin: 10px;">
-        <img src="asset/Untitled%204.png" style="width:150px; height:320px;">
-    </div>
-    <div style="text-align: center; margin: 10px;">
-        <img src="asset/vos_final_clip-ezgif.com-video-to-gif-converter_(3).gif" style="width:150px; height:320px;">
-    </div>
+<div align="center">
+    <img src="asset/Untitled%202.png" alt="이미지 1" width="200" height="450">
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <img src="asset/Untitled%203.png" alt="이미지 2" width="200" height="450">
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <img src="asset/Untitled%204.png" alt="이미지 3" width="200" height="450">
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    <img src="asset/vos_final_clip-ezgif.com-video-to-gif-converter_(3).gif" alt="이미지 4" width="200" height="450">
 </div>
+
+
 
 
 
@@ -132,7 +120,7 @@
 
 # ⚙️ 개발환경
 
----
+
 
 **OS**: Linux Ubuntu 22.04
 
@@ -148,7 +136,6 @@
 
 # 🗂 디렉토리 구조
 
----
 
 ```bash
 vos-server/
@@ -209,25 +196,23 @@ vos-server/
 ```
 
 # ⛓️ 서비스 파이프라인
----
 
 ![Untitled](asset/Untitled%205.png)
 
 # 🧬 시스템 아키텍처
 
----
 
 ![Untitled](asset/Untitled%206.png)
 
 # 📱 페이지별 기능
 
----
 
 ### 🔗 로그인 화면
 
 - 모바일 애플리케이션 접속 초기화면
     - 기존 로그인 및 엑세스 토큰 유효기간 내 앱 실행 시 바로 고인과의 채팅 리스트 화면 진입
 - 카카오 로그인 API를 통한 소셜 로그인 구현
+
 
 <img src="asset/KakaoTalk_20240126_161536227-ezgif.com-video-to-gif-converter.gif" width="200" height="450">
 
@@ -298,7 +283,6 @@ vos-server/
 
 # 💻 핵심 기술
 
----
 
 ## Frontend
 
@@ -371,7 +355,6 @@ vos-server/
 
 # ↘️ Voice of the star 실행
 
----
 
 ### 1. 설치 (Linux version)
 
@@ -415,6 +398,47 @@ sudo apt install ffmpeg
 
 .env 파일 내 환경변수 세팅이 필요합니다.
 
+[작성 예시]
+```python
+SECRET_KEY="jwt 생성을 위한 랜덤한 비밀키" # 생성방법: terminal> openssl rand -hex 32
+JWT_ALGORITHM="JWT 알고리즘" # 예시: HS256
+
+# MySQL
+MYSQL_URL="MYSQL URL" # 예시: mysql+pymysql://root:vos@127.0.0.1:3306/vos"
+MYSQL_BINDING_PORT="MYSQL BINDING PORT" # 예시: 3306
+MYSQL_PORT= "MYSQL PORT" # 예시: 3306
+
+MYSQL_DATABASE="DATABASE NAME"
+MYSQL_USER="USER NAME"
+MYSQL_PASSWORD="MYSQL PASSWORD"
+MYSQL_ROOT_PASSWORD="MYSQL ROOT PASSWORD"
+
+# MongoDB
+MONGO_URI="MongoDB URI" # 예시: mongodb://vos:vos@localhost:27017/
+MONGO_BINDING_PORT="MongoDB BINDING PORT" # 예시: 27017
+MONGO_INITDB_ROOT_USERNAME="MongoDB USER NAME"
+MONGO_INITDB_ROOT_PASSWORD="MongoDB USER PASSWORD"
+
+# AI
+INVOKE_URL="CLOVA SPEECH INVOKE URL"
+CLOVA_SECRET_KEY="CLOVA SPEECH SECRET KEY"
+GPT_API_KEY = "ChatGPT API KEY"
+VOICE_CLONING_MODEL_PATH="tts_models/multilingual/multi-dataset/xtts_v2"
+COMBINED_STAR_VOICE_FILE_PATH="VOS-server/backend/app/resources/audio"
+
+# Prompt
+PROMPT_FILE_PATH="VOS-server/backend/app/resources/text/extract_characteristic.txt"
+SYSTEM_INPUT_PATH="VOS-server/backend/app/resources/text/system_input.txt"
+VOICE_PHISHING_PROMPT_PATH="VOS-server/backend/app/resources/text/crime_prevention.txt"
+
+# CORS
+ORIGIN="Allowance Domain"
+
+# AWS S3
+S3_BUCKET="BUCKET NAME"
+AWS_ACCESS_KEY_ID="AWS ACCESS KEY ID"
+AWS_SECRET_ACCESS_KEY="AWS SECRET ACCESS KEY"
+```
 ### 4. 서버 실행
 
 ```python
@@ -424,13 +448,12 @@ uvicorn main:app --host 0.0.0.0 --port 8000
 
 ### 5. Docker 컨테이너 생성 및 실행
 
-```json
+```python
 docker-compose up -d
 ```
 
 # 📌 Reference
 
----
 
 ### Front-end Details
 
