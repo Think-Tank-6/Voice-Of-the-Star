@@ -69,7 +69,7 @@ user_input = ""
 
 # 최근 채팅 메시지 조회
 @router.get("/{star_id}/messages")
-async def get_chat_messages(
+def get_chat_messages(
     star_id: int, 
     limit: int = 50 # limit: 반환할 메시지의 최대 개수
 ):

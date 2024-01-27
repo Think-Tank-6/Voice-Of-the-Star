@@ -133,13 +133,6 @@ class VoiceCloning:
         return gpt_cond_latent_pkl, speaker_embedding_pkl
     
 
-
-
-
-
-
-
-
 class ChatGeneration:
     API_KEY = os.getenv("GPT_API_KEY")
     client = OpenAI(api_key=API_KEY)
