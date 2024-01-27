@@ -97,11 +97,11 @@
 
 <div align="center">
     <img src="asset/Untitled%202.png" alt="이미지 1" width="200" height="450">
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <img src="asset/Untitled%203.png" alt="이미지 2" width="200" height="450">
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <img src="asset/Untitled%204.png" alt="이미지 3" width="200" height="450">
-    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <img src="asset/vos_final_clip-ezgif.com-video-to-gif-converter_(3).gif" alt="이미지 4" width="200" height="450">
 </div>
 
